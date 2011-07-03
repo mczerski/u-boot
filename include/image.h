@@ -106,6 +106,7 @@
 #define IH_ARCH_BLACKFIN	16	/* Blackfin	*/
 #define IH_ARCH_AVR32		17	/* AVR32	*/
 #define IH_ARCH_ST200	        18	/* STMicroelectronics ST200  */
+#define IH_ARCH_OPENRISC        92	/* OpenRISC 1000  */
 
 /*
  * Image Types
@@ -504,6 +505,8 @@ static inline int image_check_target_arch (const image_header_t *hdr)
 	if (!image_check_arch (hdr, IH_ARCH_SH))
 #elif defined(__sparc__)
 	if (!image_check_arch (hdr, IH_ARCH_SPARC))
+#elif defined(__OR1K__)
+	if (!image_check_arch (hdr, IH_ARCH_OPENRISC))
 #else
 # error Unknown CPU type
 #endif

@@ -187,6 +187,8 @@ void arch_preboot_os(void) __attribute__((weak, alias("__arch_preboot_os")));
   #define IH_INITRD_ARCH IH_ARCH_SH
 #elif defined(__sparc__)
   #define IH_INITRD_ARCH IH_ARCH_SPARC
+#elif defined(__OR1K__)
+  #define IH_INITRD_ARCH IH_ARCH_OPENRISC
 #else
 # error Unknown CPU type
 #endif

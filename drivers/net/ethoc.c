@@ -15,6 +15,7 @@
 #include <command.h>
 #include <malloc.h>
 #include <net.h>
+#include <netdev.h>
 #include <miiphy.h>
 #include <asm/io.h>
 #include <asm/cache.h>

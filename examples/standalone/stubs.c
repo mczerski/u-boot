@@ -167,7 +167,20 @@ gd_t *global_data;
 "	jmp %%g1\n"					\
 "	nop\n"						\
 	: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "g1" );
-
+#elif defined(CONFIG_OPENRISC)
+/*
+ * r10 holds the pointer to the global_data, r14 is a call-clobbered
+ * register
+ */
+#define EXPORT_FUNC(x) \
+	asm volatile (			\
+"	.globl " #x "\n"		\
+#x ":\n"				\
+"	l.lwz	r14, %0(r10)\n"	\
+"	l.lwz	r14, %1(r14)\n"	\
+"	l.jr	r14\n"		\
+"	l.nop\n"				\
+	: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "r14");
 #else
 #error stubs definition missing for this architecture
 #endif
