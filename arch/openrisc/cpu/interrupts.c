@@ -59,7 +59,7 @@ int do_irqinfo (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 	for (i=0; i<32; i++) {
 		if (handler[i] != INTERRUPT_HANDLER_NOT_SET) {
-			printf ("%02d  %08lx\n",
+			printf ("%02d  %08lx  %08lx\n",
 				i,
 				(ulong)handler[i],
 				(ulong)arg[i]);
