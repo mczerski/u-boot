@@ -2,8 +2,9 @@
 
    Copyright (C) 2010, Embecosm Limited <info@embecosm.com>
 
-   Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
-   Contributor Julius Baxter  <julius@opencores.org>
+   Contributor Jeremy Bennett       <jeremy.bennett@embecosm.com>
+   Contributor Julius Baxter        <julius@opencores.org>
+   Contributor Stefan Kristiansson  <stefan.kristiansson@saunalahti.fi>
 
    Currently for in-ram only (we jump to board_init_r, no flash option yet)	
 
@@ -96,6 +97,22 @@ __reset:
 	l.mtspr r0, r1, SPR_SR
 	/* Clear timer mode register*/
 	l.mtspr r0, r0, SPR_TTMR
+
+	/* Relocate u-boot */
+	l.movhi	r3,hi(__start)		/* source start address */
+	l.ori	r3,r3,lo(__start)
+	l.movhi	r4,hi(_stext)		/* dest start address */
+	l.ori	r4,r4,lo(_stext)
+	l.movhi	r5,hi(__end)		/* dest end address */
+	l.ori	r5,r5,lo(__end)
+.L_reloc:
+	l.lwz	r6,0(r3)
+	l.sw	0(r4),r6
+	l.addi	r3,r3,4
+	l.sfltu	r4,r5
+	l.bf	.L_reloc
+	l.addi	r4,r4,4			/* delay slot */
+	
 	/* Jump to board initialisation code */
 	LOAD_SYMBOL_2_GPR(r4, _start)
 	l.jr    r4

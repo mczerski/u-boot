@@ -1,9 +1,12 @@
+#include <config.h>
 OUTPUT_ARCH(or32)
 __DYNAMIC  =  0;
 
 MEMORY
 {
-	ram     : ORIGIN = 0x2000, LENGTH = (32M - 0x2000)
+	vectors	: ORIGIN = 0, LENGTH = 0x2000
+	ram	: ORIGIN = CONFIG_SYS_MONITOR_BASE,
+		  LENGTH = CONFIG_SYS_MONITOR_LEN
 }
 
 SECTIONS
@@ -12,7 +15,9 @@ SECTIONS
 	{
 		*(.vectors)
 	} > vectors
-	.text : {
+
+	__start = .;
+	.text : AT (__start) {
 		_stext = .;
 		*(.text)
 		_etext = .;
@@ -54,6 +59,7 @@ SECTIONS
 		*(COMMON)
 		_bss_end = .;
 	} > ram
+	__end = .;
 
 	/* No stack specification - done manually */
 

@@ -76,9 +76,14 @@
 
 /* We're running in RAM */
 #define CONFIG_MONITOR_IS_IN_RAM
+#define CONFIG_SYS_MONITOR_LEN	0x40000	/* Reserve 256k */
+#define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_SDRAM_BASE + \
+				 CONFIG_SYS_SDRAM_SIZE - \
+				 CONFIG_SYS_MONITOR_LEN)
+
 #define CONFIG_ENV_IS_NOWHERE	1
 #define CONFIG_ENV_SIZE		0x20000 /* Total Size of Environment, 128KB */
-#define CONFIG_ENV_ADDR         (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - CONFIG_ENV_SIZE)
+#define CONFIG_ENV_ADDR         (CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SIZE)
 
 /*
  * Global data object and stack pointer
