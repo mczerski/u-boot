@@ -15,7 +15,7 @@ SECTIONS
 	.text : {
 		_stext = .;
 		*(.text)
-		_etext  =  .;
+		_etext = .;
 		*(.lit)
 		*(.shdata)
 		_endtext = .;

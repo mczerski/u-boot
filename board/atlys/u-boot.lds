@@ -8,7 +8,7 @@ MEMORY
 }
 
 SECTIONS
-{	
+{
 	.vectors :
 	{
 		*(.vectors)
