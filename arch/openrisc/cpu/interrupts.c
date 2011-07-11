@@ -41,6 +41,12 @@ disable_interrupts  (void)
 {
 	/* Clear interrupt enable bit in supervisor register */
 	mtspr (SPR_SR, mfspr (SPR_SR) & ~SPR_SR_IEE);
+	/* 
+	 * HACK: Timer exception needs to be disabled before loading 
+	 * os since the exception vector will be trashed. 
+	 * TODO: Find a better hook in do_bootm than here.
+	 */
+	mtspr (SPR_SR, mfspr (SPR_SR) & ~SPR_SR_TEE);
 	return 0;
 }
 
