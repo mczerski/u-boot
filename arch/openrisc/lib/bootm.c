@@ -1,4 +1,7 @@
 /*
+ * (C) Copyright 2011 Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+ *
+ * Based on microblaze implementation by:
  * (C) Copyright 2007 Michal Simek
  * (C) Copyright 2004 Atmark Techno, Inc.
  *
@@ -34,8 +37,8 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *images)
 {
-	/* First parameter is mapped to $r5 for kernel boot args */
-	void	(*theKernel) (char *, ulong, ulong);
+	/* First parameter is mapped to $r3 for kernel boot args */
+	void	(*kernel) (unsigned int);
 	char	*commandline = getenv ("bootargs");
 	ulong	rd_data_start, rd_data_end;
 
@@ -51,10 +54,10 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 		of_flat_tree = images->ft_addr;
 #endif
 
-	theKernel = (void (*)(char *, ulong, ulong))images->ep;
+	kernel = (void (*)(unsigned int))images->ep;
 
 	/* find ramdisk */
-	ret = boot_get_ramdisk (argc, argv, images, IH_ARCH_MICROBLAZE,
+	ret = boot_get_ramdisk (argc, argv, images, IH_ARCH_OPENRISC,
 			&rd_data_start, &rd_data_end);
 	if (ret)
 		return 1;
@@ -66,7 +69,7 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 #ifdef DEBUG
 	printf ("## Transferring control to Linux (at address 0x%08lx) " \
 				"ramdisk 0x%08lx, FDT 0x%08lx...\n",
-		(ulong) theKernel, rd_data_start, (ulong) of_flat_tree);
+		(ulong) kernel, rd_data_start, (ulong) of_flat_tree);
 #endif
 
 /*
@@ -74,11 +77,9 @@ TODO: Cache flushes here
 */
 	/*
 	 * Linux Kernel Parameters (passing device tree):
-	 * r5: pointer to command line
-	 * r6: pointer to ramdisk
-	 * r7: pointer to the fdt, followed by the board info data
+	 * r3: pointer to the fdt, followed by the board info data
 	 */
-	theKernel (commandline, rd_data_start, (ulong) of_flat_tree);
+	kernel ((unsigned int) of_flat_tree);
 	/* does not return */
 
 	return 1;
