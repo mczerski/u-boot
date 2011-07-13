@@ -24,6 +24,9 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+/* enable this for debug information */
+/*#define DEBUG*/
+
 /*
  * BOARD/CPU
  */
@@ -115,7 +118,7 @@
 					sizeof(CONFIG_SYS_PROMPT) + \
 					 16)	/* Print buf size */
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE
-#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_MEMTEST_START	(CONFIG_SYS_SDRAM_BASE + 0x2000)
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_INIT_SP_ADDR - 0x20000)
 #define CONFIG_CMDLINE_EDITING
 
@@ -135,10 +138,12 @@
 #define CONFIG_CMD_BSP
 
 #define CONFIG_CMD_MII
-# define CONFIG_NET_MULTI
-# define CONFIG_CMD_DHCP
-# define CONFIG_CMD_PING
+#define CONFIG_NET_MULTI
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_PING
 
+#define CONFIG_OF_LIBFDT
+#define CONFIG_LMB
 
 /*
  * BOOTP options
