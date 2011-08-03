@@ -37,6 +37,7 @@
 #define AAC_NAND_ADR3  0x00000005
 #define AAC_NAND_SR    0x00000006
 #define AAC_NAND_DATR  0x00000007
+#define AAC_NAND_RB    0x00000015
 
 #define AAC_NAND_CR_PROGRAM      (1<<0)
 #define AAC_NAND_CR_READSTATUS   (1<<1)
@@ -44,20 +45,21 @@
 #define AAC_NAND_CR_ERASE        (1<<3)
 #define AAC_NAND_CR_READID       (1<<4)
 #define AAC_NAND_CR_RESET        (1<<5)
+#define AAC_NAND_CR_PROG_DONE    (1<<6)
 
 #define AAC_NAND_SR_BUSY         (1<<0)
 #define AAC_NAND_SR_BYTEWRITEREQ (1<<1)
 #define AAC_NAND_SR_BYTEREADREQ  (1<<2)
 
-#define AAC_NAND_TIMEOUT         2000
+#define AAC_NAND_TIMEOUT         5000
 
 struct aac_nand_priv {
-	struct mtd_info mtd;
-	struct nand_chip chip;
-	void __iomem *regs;
-	int cmd;
-	int column;
-	int page;
+	struct mtd_info       mtd;
+	struct nand_chip      chip;
+	void __iomem         *regs;
+	int                   cmd;
+	int                   column;
+	int                   page;
 };
 
 static inline u8 aac_nand_readreg(void __iomem *base, loff_t offset)
@@ -70,7 +72,7 @@ static inline void aac_nand_writereg(void __iomem *base, loff_t offset, u8 data)
 	iowrite8(data, base + offset);
 }
 
-static inline int aac_nand_ready(struct mtd_info *mtd)
+static inline int aac_nand_nfc_ready(struct mtd_info *mtd)
 {
 	struct aac_nand_priv *priv = ((struct nand_chip *)mtd->priv)->priv;
 
@@ -78,24 +80,29 @@ static inline int aac_nand_ready(struct mtd_info *mtd)
 		 AAC_NAND_SR_BUSY);
 }
 
-static void aac_nand_wait_ready(struct mtd_info *mtd)
+/* Waits until the nand flash controller is not busy */
+static void aac_nand_wait_nfc_ready(struct mtd_info *mtd)
 {
+	struct aac_nand_priv *priv = ((struct nand_chip *)mtd->priv)->priv;
 	int timeout = AAC_NAND_TIMEOUT;
 	do {
 		udelay(1);
-	} while(!aac_nand_ready(mtd) && --timeout);
+	} while(!aac_nand_nfc_ready(mtd) && --timeout);
 
-	if (!timeout)
-		printk(KERN_WARNING "aac_nand: wait ready timeout!\n");
+	if (!timeout) {
+		aac_nand_writereg(priv->regs,AAC_NAND_CR, AAC_NAND_CR_RESET);
+		printk(KERN_WARNING "aac_nand: wait ready fc timeout!\n");
+	}
 }
 
 static u8 aac_nand_read_status(struct mtd_info *mtd)
 {
 	struct aac_nand_priv *priv = ((struct nand_chip *)mtd->priv)->priv;
 
+	aac_nand_wait_nfc_ready(mtd);
 	aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_READSTATUS);
-
-	while(!aac_nand_ready(mtd)) {
+	
+	while(!aac_nand_nfc_ready(mtd)) {
 		if(aac_nand_readreg(priv->regs, AAC_NAND_SR) &
 		   AAC_NAND_SR_BYTEREADREQ) {
 			aac_nand_writereg(priv->regs, AAC_NAND_CR,
@@ -103,6 +110,28 @@ static u8 aac_nand_read_status(struct mtd_info *mtd)
 			return aac_nand_readreg(priv->regs, AAC_NAND_DATR);
 		}
 	}
+	/* never reached, but removes warning */
+	return 0;
+}
+
+static inline int aac_nand_ready(struct mtd_info *mtd)
+{
+	struct aac_nand_priv *priv = ((struct nand_chip *)mtd->priv)->priv;
+
+	return aac_nand_readreg(priv->regs, AAC_NAND_RB);
+}
+
+/* Waits until the flash ready/busy is ready */
+static void aac_nand_wait_ready(struct mtd_info *mtd)
+{
+	int timeout = AAC_NAND_TIMEOUT;
+
+	do {
+		udelay(1);
+	} while(!aac_nand_ready(mtd) && --timeout);
+
+	if (!timeout)
+		printk(KERN_WARNING "aac_nand: wait ready timeout!\n");
 }
 
 static void aac_nand_addr_cycle(struct mtd_info *mtd, int column, int page)
@@ -113,12 +142,36 @@ static void aac_nand_addr_cycle(struct mtd_info *mtd, int column, int page)
 	calc_addr = page * (mtd->writesize*2) + column;
 
 	aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_RESET);
-	aac_nand_wait_ready(mtd);
+	aac_nand_wait_nfc_ready(mtd);
 
 	aac_nand_writereg(priv->regs, AAC_NAND_ADR0, (calc_addr >>  0) & 0xff);
 	aac_nand_writereg(priv->regs, AAC_NAND_ADR1, (calc_addr >>  8) & 0xff);
 	aac_nand_writereg(priv->regs, AAC_NAND_ADR2, (calc_addr >> 16) & 0xff);
 	aac_nand_writereg(priv->regs, AAC_NAND_ADR3, (calc_addr >> 24) & 0xff);
+}
+
+static u8 aac_nand_read_id(struct mtd_info *mtd, int column)
+{
+	struct aac_nand_priv *priv = ((struct nand_chip *)mtd->priv)->priv;
+	u8 idbuf[5];
+	int i=0;
+ 
+	aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_READID);
+	while(!aac_nand_nfc_ready(mtd)) {		
+		if(aac_nand_readreg(priv->regs, AAC_NAND_SR) &
+		   AAC_NAND_SR_BYTEREADREQ) {
+			idbuf[i] = aac_nand_readreg(priv->regs, AAC_NAND_DATR);
+			aac_nand_writereg(priv->regs, AAC_NAND_CR,
+					  AAC_NAND_CR_READ);
+			if (i++ == 4)
+				break;
+		}
+	}
+
+	if (column < 5)
+		return idbuf[column];
+
+	return 0;
 }
 
 static void aac_nand_write_buf(struct mtd_info *mtd,
@@ -131,9 +184,9 @@ static void aac_nand_write_buf(struct mtd_info *mtd,
 		return;
 
 	aac_nand_addr_cycle(mtd, priv->column, priv->page);
-
 	aac_nand_writereg(priv->regs, AAC_NAND_DATW, buf[i++]);
 	aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_PROGRAM);
+	priv->column++;
 
 	while(--timeout && (i < len))
 	{
@@ -144,10 +197,21 @@ static void aac_nand_write_buf(struct mtd_info *mtd,
 					  AAC_NAND_CR_PROGRAM);
 			priv->column++;
 			timeout = AAC_NAND_TIMEOUT;
+		} else {
+			udelay(1);
 		}
-		udelay(1);
 	}
+	/* 
+	 * nfc always expects a whole page to be written, 
+	 * to write out a smaller amount of data a PROG_DONE
+	 * command has to be issued.
+	 */
+	if (len < mtd->writesize)
+		aac_nand_writereg(priv->regs, AAC_NAND_CR, 
+		AAC_NAND_CR_PROG_DONE);
 
+	aac_nand_wait_nfc_ready(mtd);
+	
 	if (i != len)
 		printk(KERN_WARNING "aac_nand: write buf error! "
 		       "req bytes = %d, written = %d "
@@ -161,23 +225,19 @@ static void aac_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 	int i = 0, timeout = AAC_NAND_TIMEOUT;
 
 	switch (priv->cmd) {
-	case NAND_CMD_READID:
-		/* read_id initiates the first read by itself */
-		priv->cmd = NAND_CMD_NONE;
-		break;
 
 	case NAND_CMD_READOOB:
 	case NAND_CMD_READ0:
+	case NAND_CMD_RNDOUT:
 		aac_nand_addr_cycle(mtd, priv->column, priv->page);
-		aac_nand_wait_ready(mtd);
-		aac_nand_writereg(priv->regs, AAC_NAND_CR,
-				  AAC_NAND_CR_READ);
+		aac_nand_wait_nfc_ready(mtd);
 		break;
 
 	default:
-		aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_READ);
 		break;
 	}
+
+	aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_READ);
 
 	while(--timeout) {
 		if(aac_nand_readreg(priv->regs, AAC_NAND_SR) &
@@ -190,8 +250,19 @@ static void aac_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 						  AAC_NAND_CR_READ);
 			else
 				break;
+		} else {
+			udelay(1);
 		}
-		udelay(1);
+	}
+
+	/* 
+	 * nfc always expects a whole page to be read, 
+	 * so reset it to get it out of waiting for read requests if less
+	 * than the page size has been requested (i.e. oob)
+	 */
+	if (len < mtd->writesize) {
+		aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_RESET);
+		aac_nand_wait_nfc_ready(mtd);
 	}
 
 	if (i != len)
@@ -209,6 +280,9 @@ static u8 aac_nand_read_byte(struct mtd_info *mtd)
 	if (priv->cmd == NAND_CMD_STATUS)
 		return aac_nand_read_status(mtd);
 
+	if (priv->cmd == NAND_CMD_READID)
+		return aac_nand_read_id(mtd, priv->column++);
+
 	aac_nand_read_buf(mtd, &tmp, sizeof(tmp));
 
 	return tmp;
@@ -216,9 +290,10 @@ static u8 aac_nand_read_byte(struct mtd_info *mtd)
 static void aac_nand_erase_block(struct mtd_info *mtd, int page)
 {
 	struct aac_nand_priv *priv = ((struct nand_chip *)mtd->priv)->priv;
+
 	aac_nand_addr_cycle(mtd, 0, page);
 	aac_nand_writereg(priv->regs, AAC_NAND_CR, AAC_NAND_CR_ERASE);
-	aac_nand_wait_ready(mtd);
+	aac_nand_wait_nfc_ready(mtd);
 }
 
 static void aac_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
@@ -234,9 +309,11 @@ static void aac_nand_command(struct mtd_info *mtd, unsigned cmd,
 	if (cmd == NAND_CMD_NONE)
 		return;
 
-	priv->cmd    = cmd;
-	priv->column = column;
-	priv->page   = page;
+	priv->cmd  = cmd;
+	if (column != -1)
+		priv->column = column;
+	if (page != -1)
+		priv->page = page;
 
 	switch (cmd) {
 	case NAND_CMD_READOOB:
@@ -247,20 +324,6 @@ static void aac_nand_command(struct mtd_info *mtd, unsigned cmd,
 		aac_nand_erase_block(mtd, page);
 		break;
 
-	case NAND_CMD_READID:
-		/* WORKAROUND: reset fc to get it out of locked up state */
-		aac_nand_writereg(priv->regs,AAC_NAND_CR,
-				  AAC_NAND_CR_RESET);
-		aac_nand_writereg(priv->regs, AAC_NAND_CR,
-				  AAC_NAND_CR_READID);
-		break;
-
-	case NAND_CMD_STATUS:
-		/* WORKAROUND: reset fc to get it out of locked up state */
-		aac_nand_writereg(priv->regs,AAC_NAND_CR,
-				  AAC_NAND_CR_RESET);
-		break;
-
 	case NAND_CMD_RESET:
 		aac_nand_writereg(priv->regs,AAC_NAND_CR,
 				  AAC_NAND_CR_RESET);
@@ -269,7 +332,6 @@ static void aac_nand_command(struct mtd_info *mtd, unsigned cmd,
 	default:
 		break;
 	}
-
 }
 
 int board_nand_init(struct nand_chip *nand)
