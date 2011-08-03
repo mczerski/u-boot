@@ -34,9 +34,8 @@ extern void _exception_handler_add(int,unsigned long);
 void timer_isr(void)
 {
 	timestamp++;
-
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT | 
-	      (TIMER_COUNTER_CYCLES & SPR_TTMR_PERIOD));
+	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 }
 
 int timer_init(void)
@@ -48,7 +47,7 @@ int timer_init(void)
 	timestamp = 0;
 	
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT | 
-	      (TIMER_COUNTER_CYCLES & SPR_TTMR_PERIOD));
+	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 	
 	/* Enable tick timer exception in supervisor register */
 	mtspr (SPR_SR, mfspr (SPR_SR) | SPR_SR_TEE);
@@ -61,7 +60,7 @@ void reset_timer(void)
 	timestamp = 0;
 
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT | 
-	(TIMER_COUNTER_CYCLES & SPR_TTMR_PERIOD));
+	(TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 
 }
 

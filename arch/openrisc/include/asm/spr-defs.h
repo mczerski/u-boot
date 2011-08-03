@@ -1,56 +1,19 @@
-/* ipc.h.  Microkernel IPC header for Or1ksim
-	
-   Copyright (C) 2000 Damjan Lampret
-   Copyright (C) 2008, 2010 Embecosm Limited
-   
-   Contributor Damjan Lampret <lampret@opencores.org>
-   Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
-
-   This file is part of OpenRISC 1000 Architectural Simulator.
-
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the Free
-   Software Foundation; either version 3 of the License, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful, but WITHOUT
-   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-   more details.
-
-   You should have received a copy of the GNU General Public License along
-   with this program.  If not, see <http:  www.gnu.org/licenses/>.  */
-
-/* ----------------------------------------------------------------------------
-   This code is commented throughout for use with Doxygen.
-   --------------------------------------------------------------------------*/
-
-/* This file is part of test microkernel for OpenRISC 1000. */
-/* spr-defs.h -- Defines OR1K architecture specific special-purpose registers
-
-   Copyright (C) 1999 Damjan Lampret, lampret@opencores.org
-   Copyright (C) 2008 Embecosm Limited
-  
-   Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
-  
-   This file is part of OpenRISC 1000 Architectural Simulator.
-  
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the Free
-   Software Foundation; either version 3 of the License, or (at your option)
-   any later version.
-  
-   This program is distributed in the hope that it will be useful, but WITHOUT
-   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-   more details.
-  
-   You should have received a copy of the GNU General Public License along
-   with this program.  If not, see <http://www.gnu.org/licenses/>. */
-
-/* This program is commented throughout in a fashion suitable for processing
-   with Doxygen. */
-
+/*
+ * SPR Definitions
+ *
+ * Copyright (C) 2000 Damjan Lampret
+ * Copyright (C) 2003 Matjaz Breskvar <phoenix@bsemi.com>
+ * Copyright (C) 2008, 2010 Embecosm Limited
+ * Copyright (C) 2010-2011 Jonas Bonn <jonas@southpole.se>
+ * et al.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This file is part of OpenRISC 1000 Architectural Simulator.
+ */
 
 #ifndef SPR_DEFS__H
 #define SPR_DEFS__H
@@ -63,18 +26,18 @@
 #define MAX_SPRS (0x10000)
 
 /* Base addresses for the groups */
-#define SPRGROUP_SYS	(0<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_DMMU	(1<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_IMMU	(2<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_DC	(3<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_IC	(4<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_MAC	(5<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_D	(6<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_PC	(7<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_PM	(8<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_PIC	(9<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_TT	(10<< MAX_SPRS_PER_GRP_BITS)
-#define SPRGROUP_FP	(11<< MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_SYS	(0 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_DMMU	(1 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_IMMU	(2 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_DC	(3 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_IC	(4 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_MAC	(5 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_D	(6 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_PC	(7 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_PM	(8 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_PIC	(9 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_TT	(10 << MAX_SPRS_PER_GRP_BITS)
+#define SPRGROUP_FP	(11 << MAX_SPRS_PER_GRP_BITS)
 
 /* System control and status group */
 #define SPR_VR		(SPRGROUP_SYS + 0)
@@ -100,6 +63,7 @@
 
 /* Data MMU group */
 #define SPR_DMMUCR	(SPRGROUP_DMMU + 0)
+#define SPR_DTLBEIR	(SPRGROUP_DMMU + 2)
 #define SPR_DTLBMR_BASE(WAY)	(SPRGROUP_DMMU + 0x200 + (WAY) * 0x100)
 #define SPR_DTLBMR_LAST(WAY)	(SPRGROUP_DMMU + 0x27f + (WAY) * 0x100)
 #define SPR_DTLBTR_BASE(WAY)	(SPRGROUP_DMMU + 0x280 + (WAY) * 0x100)
@@ -107,6 +71,7 @@
 
 /* Instruction MMU group */
 #define SPR_IMMUCR	(SPRGROUP_IMMU + 0)
+#define SPR_ITLBEIR	(SPRGROUP_IMMU + 2)
 #define SPR_ITLBMR_BASE(WAY)	(SPRGROUP_IMMU + 0x200 + (WAY) * 0x100)
 #define SPR_ITLBMR_LAST(WAY)	(SPRGROUP_IMMU + 0x27f + (WAY) * 0x100)
 #define SPR_ITLBTR_BASE(WAY)	(SPRGROUP_IMMU + 0x280 + (WAY) * 0x100)
@@ -131,8 +96,8 @@
 #define SPR_ICR_LAST(WAY)	(SPRGROUP_IC + 0x3ff + (WAY) * 0x200)
 
 /* MAC group */
-#define SPR_MACLO 	(SPRGROUP_MAC + 1)
-#define SPR_MACHI 	(SPRGROUP_MAC + 2)
+#define SPR_MACLO	(SPRGROUP_MAC + 1)
+#define SPR_MACHI	(SPRGROUP_MAC + 2)
 
 /* Debug group */
 #define SPR_DVR(N)	(SPRGROUP_D + (N))
@@ -153,6 +118,7 @@
 
 /* PIC group */
 #define SPR_PICMR (SPRGROUP_PIC + 0)
+#define SPR_PICPR (SPRGROUP_PIC + 1)
 #define SPR_PICSR (SPRGROUP_PIC + 2)
 
 /* Tick Timer group */
@@ -438,34 +404,34 @@
 #define SPR_DMR1_CW       0x000fffff  /* Chain register pair data */
 #define SPR_DMR1_CW0_AND  0x00000001
 #define SPR_DMR1_CW0_OR   0x00000002
-#define SPR_DMR1_CW0  	  (SPR_DMR1_CW0_AND | SPR_DMR1_CW0_OR)
+#define SPR_DMR1_CW0      (SPR_DMR1_CW0_AND | SPR_DMR1_CW0_OR)
 #define SPR_DMR1_CW1_AND  0x00000004
 #define SPR_DMR1_CW1_OR   0x00000008
-#define SPR_DMR1_CW1  	  (SPR_DMR1_CW1_AND | SPR_DMR1_CW1_OR)
+#define SPR_DMR1_CW1      (SPR_DMR1_CW1_AND | SPR_DMR1_CW1_OR)
 #define SPR_DMR1_CW2_AND  0x00000010
 #define SPR_DMR1_CW2_OR   0x00000020
-#define SPR_DMR1_CW2  	  (SPR_DMR1_CW2_AND | SPR_DMR1_CW2_OR)
+#define SPR_DMR1_CW2      (SPR_DMR1_CW2_AND | SPR_DMR1_CW2_OR)
 #define SPR_DMR1_CW3_AND  0x00000040
 #define SPR_DMR1_CW3_OR   0x00000080
-#define SPR_DMR1_CW3  	  (SPR_DMR1_CW3_AND | SPR_DMR1_CW3_OR)
+#define SPR_DMR1_CW3      (SPR_DMR1_CW3_AND | SPR_DMR1_CW3_OR)
 #define SPR_DMR1_CW4_AND  0x00000100
 #define SPR_DMR1_CW4_OR   0x00000200
-#define SPR_DMR1_CW4  	  (SPR_DMR1_CW4_AND | SPR_DMR1_CW4_OR)
+#define SPR_DMR1_CW4      (SPR_DMR1_CW4_AND | SPR_DMR1_CW4_OR)
 #define SPR_DMR1_CW5_AND  0x00000400
 #define SPR_DMR1_CW5_OR   0x00000800
-#define SPR_DMR1_CW5  	  (SPR_DMR1_CW5_AND | SPR_DMR1_CW5_OR)
+#define SPR_DMR1_CW5      (SPR_DMR1_CW5_AND | SPR_DMR1_CW5_OR)
 #define SPR_DMR1_CW6_AND  0x00001000
 #define SPR_DMR1_CW6_OR   0x00002000
-#define SPR_DMR1_CW6  	  (SPR_DMR1_CW6_AND | SPR_DMR1_CW6_OR)
+#define SPR_DMR1_CW6      (SPR_DMR1_CW6_AND | SPR_DMR1_CW6_OR)
 #define SPR_DMR1_CW7_AND  0x00004000
 #define SPR_DMR1_CW7_OR   0x00008000
-#define SPR_DMR1_CW7  	  (SPR_DMR1_CW7_AND | SPR_DMR1_CW7_OR)
+#define SPR_DMR1_CW7      (SPR_DMR1_CW7_AND | SPR_DMR1_CW7_OR)
 #define SPR_DMR1_CW8_AND  0x00010000
 #define SPR_DMR1_CW8_OR   0x00020000
-#define SPR_DMR1_CW8  	  (SPR_DMR1_CW8_AND | SPR_DMR1_CW8_OR)
+#define SPR_DMR1_CW8      (SPR_DMR1_CW8_AND | SPR_DMR1_CW8_OR)
 #define SPR_DMR1_CW9_AND  0x00040000
 #define SPR_DMR1_CW9_OR   0x00080000
-#define SPR_DMR1_CW9  	  (SPR_DMR1_CW9_AND | SPR_DMR1_CW9_OR)
+#define SPR_DMR1_CW9      (SPR_DMR1_CW9_AND | SPR_DMR1_CW9_OR)
 #define SPR_DMR1_RES1      0x00300000  /* Reserved */
 #define SPR_DMR1_ST	  0x00400000  /* Single-step trace*/
 #define SPR_DMR1_BT	  0x00800000  /* Branch trace */
@@ -551,7 +517,7 @@
 #define SPR_PCMR_DDS	0x00004000  /* Data dependency stall event */
 #define SPR_PCMR_WPE	0x03ff8000  /* Watchpoint events */
 
-/* 
+/*
  * Bit definitions for the Power management register
  *
  */
@@ -568,6 +534,12 @@
 #define SPR_PICMR_IUM	0xfffffffc  /* Interrupt unmask */
 
 /*
+ * Bit definitions for PICPR
+ *
+ */
+#define SPR_PICPR_IPRIO	0xfffffffc  /* Interrupt priority */
+
+/*
  * Bit definitions for PICSR
  *
  */
@@ -577,8 +549,9 @@
  * Bit definitions for Tick Timer Control Register
  *
  */
-#define SPR_TTCR_PERIOD	0x0fffffff  /* Time Period */
-#define SPR_TTMR_PERIOD	SPR_TTCR_PERIOD
+
+#define SPR_TTCR_CNT	0xffffffff  /* Count, time period */
+#define SPR_TTMR_TP	0x0fffffff  /* Time period */
 #define SPR_TTMR_IP	0x10000000  /* Interrupt Pending */
 #define SPR_TTMR_IE	0x20000000  /* Interrupt Enable */
 #define SPR_TTMR_DI	0x00000000  /* Disabled */
@@ -623,9 +596,7 @@
 #define NOP_CNT_RESET    0x0005	     /* Reset statistics counters */
 #define NOP_GET_TICKS    0x0006	     /* JPB: Get # ticks running */
 #define NOP_GET_PS       0x0007      /* JPB: Get picosecs/cycle */
-#define NOP_TRACE_ON     0x0008      /* Turn on tracing */
-#define NOP_TRACE_OFF    0x0009      /* Turn off tracing */
-#define NOP_RANDOM       0x000a      /* Return 4 random bytes */
-#define NOP_OR1KSIM      0x000b      /* Return non-zero if this is Or1ksim */
+#define NOP_REPORT_FIRST 0x0400      /* Report with number */
+#define NOP_REPORT_LAST  0x03ff      /* Report with number */
 
 #endif	/* SPR_DEFS__H */
