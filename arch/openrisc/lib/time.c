@@ -28,12 +28,14 @@ static unsigned long timestamp;
 
 /* how many counter cycles in a jiffy */
 #define TIMER_COUNTER_CYCLES  (CONFIG_SYS_CLK_FREQ/CONFIG_SYS_HZ)
+/* how many ms elapses between each timer interrupt */
+#define TIMER_TIMESTAMP_INC   (1000/CONFIG_SYS_HZ)
 
 extern void _exception_handler_add(int,unsigned long);
 
 void timer_isr(void)
 {
-	timestamp++;
+	timestamp += TIMER_TIMESTAMP_INC;
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT |
 	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 }
