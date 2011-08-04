@@ -40,7 +40,7 @@ void timer_isr(void)
 
 int timer_init(void)
 {
-	// Install timer exception handler
+	/* Install timer exception handler */
 	_exception_handler_add(5,(unsigned long)timer_isr);
 
 	/* Set up the timer for the first expiration. */
@@ -60,8 +60,7 @@ void reset_timer(void)
 	timestamp = 0;
 
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT |
-	(TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
-
+	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 }
 
 ulong get_timer(ulong base)
@@ -71,9 +70,7 @@ ulong get_timer(ulong base)
 
 void set_timer(ulong t)
 {
-
 	reset_timer();
-
 	timestamp = t;
 }
 
