@@ -30,6 +30,8 @@ static unsigned long timestamp;
 #define TIMER_COUNTER_CYCLES  (CONFIG_SYS_CLK_FREQ/CONFIG_SYS_HZ)
 /* how many ms elapses between each timer interrupt */
 #define TIMER_TIMESTAMP_INC   (1000/CONFIG_SYS_HZ)
+/* how many cycles per us */
+#define TIMER_CYCLES_US       (CONFIG_SYS_CLK_FREQ/1000000uL)
 
 extern void _exception_handler_add(int,unsigned long);
 
@@ -76,12 +78,19 @@ void set_timer(ulong t)
 	timestamp = t;
 }
 
-// TODO - check this!
-void __udelay(unsigned long usec)
+void __udelay(ulong usec)
 {
+	ulong elapsed = 0;
+	ulong tick;
+	ulong last_tick;
 
-	int i;
-	i = get_timer (0);
-	while ((get_timer (0) - i) < (usec / 1000)) ;
-
+	last_tick = mfspr(SPR_TTCR);
+	while ((elapsed / TIMER_CYCLES_US) < usec) {
+		tick = mfspr(SPR_TTCR);
+		if (tick >= last_tick)
+			elapsed += (tick - last_tick);
+		else
+			elapsed += TIMER_COUNTER_CYCLES - (last_tick - tick);
+		last_tick = tick;
+	}
 }
