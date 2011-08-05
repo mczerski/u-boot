@@ -368,11 +368,13 @@ static int configure_phy(struct eth_device *dev)
 {
 	struct dw_eth_dev *priv = dev->priv;
 	int phy_addr;
-	u16 bmcr, ctrl;
+	u16 bmcr;
 #if defined(CONFIG_DW_AUTONEG)
 	u16 bmsr;
 	u32 timeout;
 	u16 anlpar, btsr;
+#else
+	u16 ctrl;
 #endif
 
 #if defined(CONFIG_DW_SEARCH_PHY)
@@ -381,6 +383,8 @@ static int configure_phy(struct eth_device *dev)
 		priv->address = phy_addr;
 	else
 		return -1;
+#else
+	phy_addr = priv->address;
 #endif
 	if (dw_reset_phy(dev) < 0)
 		return -1;

@@ -33,7 +33,11 @@ ulong timer_ticks;
 
 int timer_init (void)
 {
-	reset_timer();
+	/* Set the hadware timer for 1ms */
+	ks8695_write(KS8695_TIMER1, TIMER_COUNT);
+	ks8695_write(KS8695_TIMER1_PCOUNT, TIMER_PULSE);
+	ks8695_write(KS8695_TIMER_CTRL, 0x2);
+	timer_ticks = 0;
 
 	return 0;
 }
@@ -45,20 +49,6 @@ int timer_init (void)
 #define	TIMER_INTERVAL	(TICKS_PER_uSEC * mSEC_1)
 #define	TIMER_COUNT	(TIMER_INTERVAL / 2)
 #define	TIMER_PULSE	TIMER_COUNT
-
-void reset_timer_masked(void)
-{
-	/* Set the hadware timer for 1ms */
-	ks8695_write(KS8695_TIMER1, TIMER_COUNT);
-	ks8695_write(KS8695_TIMER1_PCOUNT, TIMER_PULSE);
-	ks8695_write(KS8695_TIMER_CTRL, 0x2);
-	timer_ticks = 0;
-}
-
-void reset_timer(void)
-{
-	reset_timer_masked();
-}
 
 ulong get_timer_masked(void)
 {
@@ -74,11 +64,6 @@ ulong get_timer_masked(void)
 ulong get_timer(ulong base)
 {
        return (get_timer_masked() - base);
-}
-
-void set_timer(ulong t)
-{
-	timer_ticks = t;
 }
 
 void __udelay(ulong usec)

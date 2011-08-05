@@ -28,7 +28,6 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_ARMV7		1	/* This is an ARM V7 CPU core */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_OMAP3_AM3517EVM	1	/* working with AM3517EVM */
@@ -190,7 +189,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
-	"console=ttyS2,115200n8\0" \
+	"console=ttyO2,115200n8\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait\0" \

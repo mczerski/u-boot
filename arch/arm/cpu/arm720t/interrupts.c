@@ -209,19 +209,9 @@ int timer_init (void)
 
 #if defined(CONFIG_IMPA7) || defined(CONFIG_EP7312) || defined(CONFIG_NETARM) || defined(CONFIG_ARMADILLO) || defined(CONFIG_LPC2292)
 
-void reset_timer (void)
-{
-	reset_timer_masked ();
-}
-
 ulong get_timer (ulong base)
 {
 	return get_timer_masked () - base;
-}
-
-void set_timer (ulong t)
-{
-	timestamp = t;
 }
 
 void __udelay (unsigned long usec)
@@ -241,13 +231,6 @@ void __udelay (unsigned long usec)
 #else
 		/*NOP*/;
 #endif
-}
-
-void reset_timer_masked (void)
-{
-	/* reset time */
-	lastdec = READ_TIMER;
-	timestamp = 0;
 }
 
 ulong get_timer_masked (void)

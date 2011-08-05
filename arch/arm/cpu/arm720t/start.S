@@ -1,8 +1,8 @@
 /*
  *  armboot - Startup Code for ARM720 CPU-core
  *
- *  Copyright (c) 2001	Marius Gröger <mag@sysgo.de>
- *  Copyright (c) 2002	Alex Züpke <azu@sysgo.de>
+ *  Copyright (c) 2001	Marius GrÃ¶ger <mag@sysgo.de>
+ *  Copyright (c) 2002	Alex ZÃ¼pke <azu@sysgo.de>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -178,7 +178,7 @@ copy_loop:
 	cmp	r0, r2			/* until source end address [r2]    */
 	blo	copy_loop
 
-#ifndef CONFIG_PRELOADER
+#ifndef CONFIG_SPL_BUILD
 	/*
 	 * fix .rel.dyn relocations
 	 */
@@ -220,7 +220,7 @@ fixnext:
 #endif
 
 clear_bss:
-#ifndef CONFIG_PRELOADER
+#ifndef CONFIG_SPL_BUILD
 	ldr	r0, _bss_start_ofs
 	ldr	r1, _bss_end_ofs
 	mov	r4, r6			/* reloc addr */
@@ -274,7 +274,7 @@ _dynsym_start_ofs:
 
 #if defined(CONFIG_IMPA7) || defined(CONFIG_EP7312) || defined(CONFIG_ARMADILLO)
 
-/* Interupt-Controller base addresses */
+/* Interrupt-Controller base addresses */
 INTMR1:		.word	0x80000280 @ 32 bit size
 INTMR2:		.word	0x80001280 @ 16 bit size
 INTMR3:		.word	0x80002280 @  8 bit size

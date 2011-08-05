@@ -137,6 +137,9 @@ typedef volatile unsigned char	vu_char;
 #define BUG_ON(condition) do { if (unlikely((condition)!=0)) BUG(); } while(0)
 #endif /* BUG */
 
+/* Force a compilation error if condition is true */
+#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+
 typedef void (interrupt_handler_t)(void *);
 
 #include <asm/u-boot.h> /* boot information for Linux kernel */
@@ -219,6 +222,9 @@ typedef void (interrupt_handler_t)(void *);
 
 void	hang		(void) __attribute__ ((noreturn));
 
+int	timer_init(void);
+int	cpu_init(void);
+
 /* */
 phys_size_t initdram (int);
 int	display_options (void);
@@ -259,13 +265,13 @@ void	doc_probe(unsigned long physadr);
 int	env_init     (void);
 void	env_relocate (void);
 int	envmatch     (uchar *, int);
-char	*getenv	     (char *);
-int	getenv_f     (char *name, char *buf, unsigned len);
+char	*getenv	     (const char *);
+int	getenv_f     (const char *name, char *buf, unsigned len);
 int	saveenv	     (void);
 #ifdef CONFIG_PPC		/* ARM version to be fixed! */
-int inline setenv   (char *, char *);
+int inline setenv    (const char *, const char *);
 #else
-int	setenv	     (char *, char *);
+int	setenv	     (const char *, const char *);
 #endif /* CONFIG_PPC */
 #ifdef CONFIG_ARM
 # include <asm/mach-types.h>
@@ -317,7 +323,7 @@ const char *symbol_lookup(unsigned long addr, unsigned long *caddr);
 void	api_init (void);
 
 /* common/memsize.c */
-long	get_ram_size  (volatile long *, long);
+long	get_ram_size  (long *, long);
 
 /* $(BOARD)/$(BOARD).c */
 void	reset_phy     (void);
@@ -413,6 +419,7 @@ void	icache_disable(void);
 int	dcache_status (void);
 void	dcache_enable (void);
 void	dcache_disable(void);
+void	mmu_disable(void);
 void	relocate_code (ulong, gd_t *, ulong) __attribute__ ((noreturn));
 ulong	get_endaddr   (void);
 void	trap_init     (ulong);
@@ -586,7 +593,6 @@ void	irq_install_handler(int, interrupt_handler_t *, void *);
 void	irq_free_handler   (int);
 void	reset_timer	   (void);
 ulong	get_timer	   (ulong base);
-void	set_timer	   (ulong t);
 void	enable_interrupts  (void);
 int	disable_interrupts (void);
 
@@ -611,9 +617,11 @@ ulong	video_setmem (ulong);
 
 /* arch/$(ARCH)/lib/cache.c */
 void	flush_cache   (unsigned long, unsigned long);
+void	flush_dcache_all(void);
 void	flush_dcache_range(unsigned long start, unsigned long stop);
 void	invalidate_dcache_range(unsigned long start, unsigned long stop);
-
+void	invalidate_dcache_all(void);
+void	invalidate_icache_all(void);
 
 /* arch/$(ARCH)/lib/ticks.S */
 unsigned long long get_ticks(void);
@@ -651,7 +659,7 @@ int strict_strtoul(const char *cp, unsigned int base, unsigned long *res);
 unsigned long long	simple_strtoull(const char *cp,char **endp,unsigned int base);
 long	simple_strtol(const char *cp,char **endp,unsigned int base);
 void	panic(const char *fmt, ...)
-		__attribute__ ((format (__printf__, 1, 2)));
+		__attribute__ ((format (__printf__, 1, 2), noreturn));
 int	sprintf(char * buf, const char *fmt, ...)
 		__attribute__ ((format (__printf__, 2, 3)));
 int	vsprintf(char *buf, const char *fmt, va_list args);
@@ -758,5 +766,10 @@ int cpu_release(int nr, int argc, char * const argv[]);
 
 #define ALIGN(x,a)		__ALIGN_MASK((x),(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+
+/* Pull in stuff for the build system */
+#ifdef DO_DEPS_ONLY
+# include <environment.h>
+#endif
 
 #endif	/* __COMMON_H_ */
