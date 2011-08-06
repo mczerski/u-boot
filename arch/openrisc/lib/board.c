@@ -93,9 +93,6 @@ void board_init (void)
 	bd_t *bd;
 	init_fnc_t **init_fnc_ptr;
 
-#ifndef CONFIG_ENV_IS_NOWHERE
-	extern char * env_name_spec;
-#endif
 	gd = (gd_t *)CONFIG_SYS_GBL_DATA_ADDR;
 
 	memset( gd, 0, GENERATED_GBL_DATA_SIZE );
@@ -103,10 +100,6 @@ void board_init (void)
 	gd->bd = (bd_t *)(gd+1);	/* At end of global data */
 	gd->baudrate = CONFIG_BAUDRATE;
 	gd->cpu_clk = CONFIG_SYS_CLK_FREQ;
-
-#ifndef CONFIG_ENV_IS_NOWHERE
-	env_name_spec += gd->reloc_off;
-#endif
 
 	bd = gd->bd;
 	bd->bi_memstart	= CONFIG_SYS_SDRAM_BASE;
