@@ -127,6 +127,8 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_INIT_SP_ADDR - 0x20000)
 #define CONFIG_CMDLINE_EDITING
 
+#define CONFIG_BOOTDELAY                5
+#define CONFIG_BOOTCOMMAND              "nboot 0x100000 0 0x200000; bootm"
 
 /*
  * Command line configuration.
