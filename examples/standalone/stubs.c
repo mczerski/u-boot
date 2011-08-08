@@ -169,18 +169,18 @@ gd_t *global_data;
 	: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "g1" );
 #elif defined(CONFIG_OPENRISC)
 /*
- * r10 holds the pointer to the global_data, r14 is a call-clobbered
+ * r10 holds the pointer to the global_data, r13 is a call-clobbered
  * register
  */
 #define EXPORT_FUNC(x) \
 	asm volatile (			\
 "	.globl " #x "\n"		\
 #x ":\n"				\
-"	l.lwz	r14, %0(r10)\n"	\
-"	l.lwz	r14, %1(r14)\n"	\
-"	l.jr	r14\n"		\
+"	l.lwz	r13, %0(r10)\n"	\
+"	l.lwz	r13, %1(r13)\n"	\
+"	l.jr	r13\n"		\
 "	l.nop\n"				\
-	: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "r14");
+	: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "r13");
 #else
 #error stubs definition missing for this architecture
 #endif
