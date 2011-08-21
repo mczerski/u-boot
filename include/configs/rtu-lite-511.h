@@ -90,6 +90,28 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE 1
 #define CONFIG_SYS_NAND_BASE       0x95000000
 
+/*
+ * SPI
+ */
+#define CONFIG_OC_SIMPLE_SPI
+#define CONFIG_SYS_SIMPLE_SPI_LIST		\
+{						\
+	{					\
+		.freq = CONFIG_SYS_CLK_FREQ,	\
+		.base = 0xb1000000,		\
+	},					\
+	{					\
+		.freq = CONFIG_SYS_CLK_FREQ,	\
+		.base = 0xb2000000,		\
+	}					\
+}
+
+/*
+ * GPIO
+ */
+#define CONFIG_SYS_GPIO_BASE 0x9a000000
+#define CONFIG_SYS_GPIO_WIDTH 56
+
 /* We're running in RAM */
 #define CONFIG_MONITOR_IS_IN_RAM
 #define CONFIG_SYS_MONITOR_LEN	0x40000	/* Reserve 256k */
@@ -145,6 +167,7 @@
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_I2C
 */
+#define CONFIG_CMD_SPI
 #define CONFIG_CMD_BSP
 
 #define CONFIG_CMD_MII
