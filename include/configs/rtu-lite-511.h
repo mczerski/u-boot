@@ -25,7 +25,9 @@
 #define __CONFIG_H
 
 /* enable this for debug information */
-/*#define DEBUG*/
+#if 0
+#define DEBUG
+#endif
 
 /*
  * BOARD/CPU
