@@ -29,7 +29,7 @@ endif
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS-y	:= $(BOARD).o cmd_aac.o
+COBJS-y	:= $(BOARD).o cmd_aac.o sensors.o
 
 SRCS	:= $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS-y))
