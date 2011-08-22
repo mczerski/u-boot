@@ -138,13 +138,13 @@ static float calc_board_icc(ushort raw_data)
 }
 
 /* Returns voltage in V */
-static float calc_vcc(ushort raw_data)
+static float calc_board_vcc(ushort raw_data)
 {
         return (5 / 1.5986 * (float)raw_data * 0.000976563);
 }
 
 /* Returns voltage in V */
-static float calc_v33(ushort raw_data)
+static float calc_board_v33(ushort raw_data)
 {
         return (3.3 / 1.055 * (float) raw_data * 0.000976563);
 }
@@ -154,7 +154,8 @@ void do_sensors()
 	struct spi_slave *slave;
 	int i;
 	ushort raw_data;
-
+	int icc;
+	int vcc;
 	gpio_direction_output(ADC_CS, 1);
 	gpio_direction_input(ADC_EOC);
 	gpio_direction_output(ADC_FS, 1);
@@ -185,14 +186,18 @@ void do_sensors()
 	printf("Board temperature (Channel %d)\t Raw %d  \t%d (C)\n",
 	       ADC_TEMP, raw_data, (int) calc_board_temp(raw_data));
 	raw_data = tlv2548_read(slave, ADC_ICC);
+	icc = (int) calc_board_icc(raw_data);
 	printf("Board current (Channel %d)\t Raw %d  \t%d (mA)\n",
-	       ADC_ICC, raw_data, (int) calc_board_icc(raw_data));
+	       ADC_ICC, raw_data, icc);
 	raw_data = tlv2548_read(slave, ADC_VCC);
+	vcc = (int) (calc_board_vcc(raw_data) * 1000);
 	printf("Vcc (5V) status (Channel %d)\t Raw %d  \t%d (mV)\n",
-	       ADC_VCC, raw_data, (int) (calc_vcc(raw_data) * 1000));
+	       ADC_VCC, raw_data, vcc);
 	raw_data = tlv2548_read(slave, ADC_V33);
 	printf("3.3 V status (Channel %d)\t Raw %d  \t%d (mV)\n",
-	       ADC_V33, raw_data, (int) (calc_v33(raw_data) * 1000));
+	       ADC_V33, raw_data, (int) (calc_board_v33(raw_data) * 1000));
+	printf("Power consumption\t\t\t\t%01d.%02d (W)\n",
+	       (vcc*icc)/1000000, (vcc*icc)%1000000);
 
 out:
 	spi_release_bus(slave);
