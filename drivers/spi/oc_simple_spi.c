@@ -34,6 +34,7 @@
 #define SIMPLE_SPI_SPSR 0x01
 #define SIMPLE_SPI_SPDR 0x02
 #define SIMPLE_SPI_SPER 0x03
+#define SIMPLE_SPI_SSEL 0x04
 
 #define SIMPLE_SPI_SPCR_SPIE  (1 << 7)
 #define SIMPLE_SPI_SPCR_SPE   (1 << 6)
@@ -71,25 +72,49 @@ struct simple_spi_slave {
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
+	#ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+	return bus < ARRAY_SIZE(simple_spi_host_list);
+	# else
 	return bus < ARRAY_SIZE(simple_spi_host_list) && gpio_is_valid(cs);
+	#endif
 }
 
 void spi_cs_activate(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
+#ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+	uint base  = simple_spi->host->base;
+	// TODO: implement a clean way to select a single (and correct) slave
+	char flags = readb(base + SIMPLE_SPI_SSEL) | 0xFF;
+
+	debug("0x%x\n", simple_spi->flg);
+
+	writeb(flags, base + SIMPLE_SPI_SSEL);
+#else
 	unsigned int cs = slave->cs;
 
 	gpio_set_value(cs, simple_spi->flg);
 	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(cs));
+#endif
 }
 
 void spi_cs_deactivate(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
+#ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+	uint base  = simple_spi->host->base;
+	// TODO: implement a clean way to select a single (and correct) slave
+	char flags = readb(base + SIMPLE_SPI_SSEL) & 0x00;
+
+	debug("0x%x\n", simple_spi->flg);
+
+	writeb(flags, base + SIMPLE_SPI_SSEL);
+#else
 	unsigned int cs = slave->cs;
 
 	gpio_set_value(cs, !simple_spi->flg);
 	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(cs));
+#endif
 }
 
 void spi_set_speed(struct spi_slave *slave, uint hz)
@@ -136,8 +161,13 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 {
 	struct simple_spi_slave *simple_spi;
 
+#ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+	if (!spi_cs_is_valid(bus, cs))
+		return NULL;
+#else
 	if (!spi_cs_is_valid(bus, cs) || gpio_request(cs, "simple_spi"))
 		return NULL;
+#endif
 
 	simple_spi = malloc(sizeof(*simple_spi));
 	if (!simple_spi)
@@ -159,8 +189,9 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 void spi_free_slave(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
-
+#ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	gpio_free(slave->cs);
+#endif
 	free(simple_spi);
 }
 
@@ -171,8 +202,11 @@ int spi_claim_bus(struct spi_slave *slave)
 	u8 spcr = 0;
 	u8 sper = 0;
 
+#ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	debug("%s: bus:%i cs:%i\n", __func__, slave->bus, slave->cs);
 	gpio_direction_output(slave->cs, !simple_spi->flg);
+#endif
+
 	/* SPI Enable */
 	spcr |= SIMPLE_SPI_SPCR_SPE;
 	/* Controller only supports Master mode, but set it explicitly */
@@ -187,6 +221,7 @@ int spi_claim_bus(struct spi_slave *slave)
 	sper |= (simple_spi->baud & SIMPLE_SPI_SPER_ESPR);
 	writeb(spcr, base + SIMPLE_SPI_SPCR);
 	writeb(sper, base + SIMPLE_SPI_SPER);
+
 	return 0;
 }
 
@@ -199,8 +234,10 @@ void spi_release_bus(struct spi_slave *slave)
 	/* Disable SPI */
 	spcr &= ~SIMPLE_SPI_SPCR_SPE;
 	writeb(spcr, base + SIMPLE_SPI_SPCR);
+#ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	gpio_direction_input(slave->cs);
 	debug("%s: bus:%i cs:%i\n", __func__, slave->bus, slave->cs);
+#endif
 }
 
 int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
@@ -249,7 +286,11 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 			if (txp)
 				writeb(*txp++, base + SIMPLE_SPI_SPDR);
 			else
-				writeb(0, base + SIMPLE_SPI_SPDR);
+#ifdef CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE
+				writeb(CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE, base + SIMPLE_SPI_SPDR);
+#else
+				writeb(0x00, base + SIMPLE_SPI_SPDR);
+#endif
 			txbytes++;
 		}
 
