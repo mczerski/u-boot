@@ -88,10 +88,7 @@ void spi_cs_activate(struct spi_slave *slave)
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 #ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	uint base  = simple_spi->host->base;
-	// TODO: implement a clean way to select a single (and correct) slave
-	char flags = readb(base + SIMPLE_SPI_SSEL) | 0xFF;
-
-	debug("0x%x\n", simple_spi->flg);
+	char flags = readb(base + SIMPLE_SPI_SSEL) | (1<<slave->cs);
 
 	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
@@ -107,10 +104,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 #ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	uint base  = simple_spi->host->base;
-	// TODO: implement a clean way to select a single (and correct) slave
-	char flags = readb(base + SIMPLE_SPI_SSEL) & 0x00;
-
-	debug("0x%x\n", simple_spi->flg);
+	char flags = readb(base + SIMPLE_SPI_SSEL) & ~(1<<slave->cs);
 
 	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
