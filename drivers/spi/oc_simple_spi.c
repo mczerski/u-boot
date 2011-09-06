@@ -53,6 +53,10 @@
 #define SIMPLE_SPI_SPER_ICNT  0xc0
 #define SIMPLE_SPI_SPER_ESPR  0x03
 
+#ifndef CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE
+	#define CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE 0x00
+#endif
+
 struct simple_spi_host {
 	uint base;
 	uint freq;
@@ -286,11 +290,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 			if (txp)
 				writeb(*txp++, base + SIMPLE_SPI_SPDR);
 			else
-#ifdef CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE
 				writeb(CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE, base + SIMPLE_SPI_SPDR);
-#else
-				writeb(0x00, base + SIMPLE_SPI_SPDR);
-#endif
 			txbytes++;
 		}
 
