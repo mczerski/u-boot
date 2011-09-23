@@ -124,6 +124,27 @@ typedef volatile unsigned char	vu_char;
 #define debugX(level,fmt,args...)
 #endif	/* DEBUG */
 
+#ifdef DEBUG
+# define _DEBUG 1
+#else
+# define _DEBUG 0
+#endif
+
+/*
+ * An assertion is run-time check done in debug mode only. If DEBUG is not
+ * defined then it is skipped. If DEBUG is defined and the assertion fails,
+ * then it calls panic*( which may or may not reset/halt U-Boot (see
+ * CONFIG_PANIC_HANG), It is hoped that all failing assertions are found
+ * before release, and after release it is hoped that they don't matter. But
+ * in any case these failing assertions cannot be fixed with a reset (which
+ * may just do the same assertion again).
+ */
+void __assert_fail(const char *assertion, const char *file, unsigned line,
+		   const char *function);
+#define assert(x) \
+	({ if (!(x) && _DEBUG) \
+		__assert_fail(#x, __FILE__, __LINE__, __func__); })
+
 #define error(fmt, args...) do {					\
 		printf("ERROR: " fmt "\nat %s:%d/%s()\n",		\
 			##args, __FILE__, __LINE__, __func__);		\
@@ -616,6 +637,7 @@ ulong	lcd_setmem (ulong);
 ulong	video_setmem (ulong);
 
 /* arch/$(ARCH)/lib/cache.c */
+void	enable_caches(void);
 void	flush_cache   (unsigned long, unsigned long);
 void	flush_dcache_all(void);
 void	flush_dcache_range(unsigned long start, unsigned long stop);
@@ -759,7 +781,7 @@ int cpu_release(int nr, int argc, char * const argv[]);
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-#define ROUND(a,b)		(((a) + (b)) & ~((b) - 1))
+#define ROUND(a,b)		(((a) + (b) - 1) & ~((b) - 1))
 #define DIV_ROUND(n,d)		(((n) + ((d)/2)) / (d))
 #define DIV_ROUND_UP(n,d)	(((n) + (d) - 1) / (d))
 #define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))

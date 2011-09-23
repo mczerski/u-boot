@@ -33,7 +33,8 @@
 #include <asm/arch/mem.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/arch/gpio.h>
+#include <asm/arch/mmc_host_def.h>
+#include <asm/gpio.h>
 #include <i2c.h>
 #include <asm/mach-types.h>
 #include "evm.h"
@@ -195,21 +196,21 @@ static void reset_net_chip(void)
 		rst_gpio = OMAP3EVM_GPIO_ETH_RST_GEN2;
 	}
 
-	ret = omap_request_gpio(rst_gpio);
+	ret = gpio_request(rst_gpio, "");
 	if (ret < 0) {
 		printf("Unable to get GPIO %d\n", rst_gpio);
 		return ;
 	}
 
 	/* Configure as output */
-	omap_set_gpio_direction(rst_gpio, 0);
+	gpio_direction_output(rst_gpio, 0);
 
 	/* Send a pulse on the GPIO pin */
-	omap_set_gpio_dataout(rst_gpio, 1);
+	gpio_set_value(rst_gpio, 1);
 	udelay(1);
-	omap_set_gpio_dataout(rst_gpio, 0);
+	gpio_set_value(rst_gpio, 0);
 	udelay(1);
-	omap_set_gpio_dataout(rst_gpio, 1);
+	gpio_set_value(rst_gpio, 1);
 }
 
 int board_eth_init(bd_t *bis)
@@ -221,3 +222,11 @@ int board_eth_init(bd_t *bis)
 	return rc;
 }
 #endif /* CONFIG_CMD_NET */
+
+#ifdef CONFIG_GENERIC_MMC
+int board_mmc_init(bd_t *bis)
+{
+	omap_mmc_init(0);
+	return 0;
+}
+#endif

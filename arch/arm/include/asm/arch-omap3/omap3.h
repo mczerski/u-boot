@@ -100,14 +100,6 @@ struct s32ktimer {
 
 #endif /* __ASSEMBLY__ */
 
-/* OMAP3 GPIO registers */
-#define OMAP34XX_GPIO1_BASE		0x48310000
-#define OMAP34XX_GPIO2_BASE		0x49050000
-#define OMAP34XX_GPIO3_BASE		0x49052000
-#define OMAP34XX_GPIO4_BASE		0x49054000
-#define OMAP34XX_GPIO5_BASE		0x49056000
-#define OMAP34XX_GPIO6_BASE		0x49058000
-
 #ifndef __ASSEMBLY__
 struct gpio {
 	unsigned char res1[0x34];
@@ -198,6 +190,16 @@ struct gpio {
 #define CPU_3XX_ES31		4
 #define CPU_3XX_ES312		7
 #define CPU_3XX_MAX_REV		8
+
+/*
+ * 37xx real hardware:
+ * ES1.0 onwards, the value maps to contents of IDCODE register [31:28].
+ */
+
+#define CPU_37XX_ES10		0
+#define CPU_37XX_ES11		1
+#define CPU_37XX_ES12		2
+#define CPU_37XX_MAX_REV	3
 
 #define CPU_3XX_ID_SHIFT	28
 

@@ -142,6 +142,10 @@ Alex Dubov <oakad@yahoo.com>
 
 	mpq101		MPC8548
 
+Phil Edworthy <phil.edworthy@renesas.com>
+
+	rsk7264		SH7264
+
 Dirk Eibach <eibach@gdsys.de>
 
 	devconcenter	PPC460EX
@@ -544,8 +548,6 @@ Unknown / orphaned boards:
 
 	EVB64260	MPC7xx_74xx
 
-	integratorcp	various
-	versatile	ARM926EJ-S
 	versatile	ARM926EJ-S
 
 
@@ -559,10 +561,6 @@ Unknown / orphaned boards:
 Albert ARIBAUD <albert.u.boot@aribaud.net>
 
 	edminiv2	ARM926EJS (Orion5x SoC)
-
-Rowel Atienza <rowel@diwalabs.com>
-
-	armadillo	ARM720T
 
 Stefano Babic <sbabic@denx.de>
 
@@ -626,18 +624,9 @@ Eric Cooper <ecc@cmu.edu>
 
 	dockstar	ARM926EJS (Kirkwood SoC)
 
-George G. Davis <gdavis@mvista.com>
-
-	assabet		SA1100
-	gcplus		SA1100
-
 Wolfgang Denk <wd@denx.de>
 	imx27lite	i.MX27
 	qong		i.MX31
-
-Thomas Elste <info@elste.org>
-
-	modnet50	ARM720T (NET+50)
 
 Kristoffer Ericson <kristoffer.ericson@gmail.com>
 
@@ -664,11 +653,6 @@ Simon Guinot <simon.guinot@sequanux.org>
 	netspace_v2	ARM926EJS (Kirkwood SoC)
 	netspace_max_v2	ARM926EJS (Kirkwood SoC)
 
-Marius Gröger <mag@sysgo.de>
-
-	impa7		ARM720T (EP7211)
-	ep7312		ARM720T (EP7312)
-
 Igor Grinberg <grinberg@compulab.co.il>
 
 	cm-t35		ARM ARMV7 (OMAP3xx Soc)
@@ -685,10 +669,6 @@ Vaibhav Hiremath <hvaibhav@ti.com>
 Grazvydas Ignotas <notasas@gmail.com>
 
 	omap3_pandora	ARM ARMV7 (OMAP3xx SoC)
-
-Gary Jennejohn <garyj@denx.de>
-
-	smdk2400	ARM920T
 
 Matthias Kaehlcke <matthias@kaehlcke.net>
 	edb9301			ARM920T (EP9301)
@@ -712,6 +692,7 @@ Minkyu Kang <mk7.kang@samsung.com>
 
 Chander Kashyap <k.chander@samsung.com>
 
+	origen			ARM ARMV7 (S5PC210 SoC)
 	SMDKV310		ARM ARMV7 (S5PC210 SoC)
 
 Torsten Koschorrek <koschorrek@synertronixx.de>
@@ -765,10 +746,6 @@ Nagendra T S  <nagendra@mistralsolutions.com>
 
    am3517_crane    ARM ARMV7 (AM35x SoC)
 
-Rolf Offermanns <rof@sysgo.de>
-
-	shannon		SA1100
-
 Kyungmin Park <kyungmin.park@samsung.com>
 
 	apollon		ARM1136EJS
@@ -781,7 +758,8 @@ Sandeep Paulraj <s-paulraj@ti.com>
 	davinci_dm6467evm	ARM926EJS
 
 Linus Walleij <linus.walleij@linaro.org>
-	integratorap	ARM920T
+	integratorap	various
+	integratorcp	various
 
 Dave Peverley <dpeverley@mpc-data.co.uk>
 
@@ -793,7 +771,6 @@ Manikandan Pillai <mani.pillai@ti.com>
 
 Stelian Pop <stelian.pop@leadtechdesign.com>
 
-	at91cap9adk	ARM926EJS (AT91CAP9 SoC)
 	at91sam9260ek	ARM926EJS (AT91SAM9260 SoC)
 	at91sam9261ek	ARM926EJS (AT91SAM9261 SoC)
 	at91sam9263ek	ARM926EJS (AT91SAM9263 SoC)
@@ -845,10 +822,6 @@ Michael Schwingen <michael@schwingen.org>
 	actux3		xscale/ixp
 	actux4		xscale/ixp
 	dvlhost		xscale/ixp
-
-Andrea Scian <andrea.scian@dave-tech.it>
-
-	B2		ARM7TDMI (S3C44B0X)
 
 Nick Thompson <nick.thompson@gefanuc.com>
 
@@ -909,11 +882,6 @@ Matthias Weisser <weisserm@arcor.de>
 Richard Woodruff <r-woodruff2@ti.com>
 
 	omap2420h4	ARM1136EJS
-
-Alex Züpke <azu@sysgo.de>
-
-	lart		SA1100
-	dnp1110		SA1110
 
 Syed Mohammed Khasim <sm.khasim@gmail.com>
 Sughosh Ganu <urwithsughosh@gmail.com>

@@ -318,13 +318,10 @@ static int genphy_parse_link(struct phy_device *phydev)
 		lpa = phy_read(phydev, MDIO_DEVAD_NONE, MII_ADVERTISE);
 		lpa &= phy_read(phydev, MDIO_DEVAD_NONE, MII_LPA);
 
-		if (lpa & (LPA_100FULL | LPA_100HALF)) {
+		if (lpa & (LPA_100FULL | LPA_100HALF))
 			phydev->speed = SPEED_100;
 
-			if (lpa & LPA_100FULL)
-				phydev->duplex = DUPLEX_FULL;
-
-		} else if (lpa & LPA_10FULL)
+		if (lpa & (LPA_100FULL | LPA_10FULL))
 			phydev->duplex = DUPLEX_FULL;
 	} else {
 		u32 bmcr = phy_read(phydev, MDIO_DEVAD_NONE, MII_BMCR);
@@ -692,7 +689,8 @@ struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 	struct phy_device *phydev;
 
 	/* Reset the bus */
-	bus->reset(bus);
+	if (bus->reset)
+		bus->reset(bus);
 
 	/* Wait 15ms to make sure the PHY has come out of hard reset */
 	udelay(15000);
@@ -714,7 +712,7 @@ struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 
 	phydev->dev = dev;
 
-	printf("%s connected to %s\n", dev->name, phydev->drv->name);
+	debug("%s connected to %s\n", dev->name, phydev->drv->name);
 
 	return phydev;
 }
