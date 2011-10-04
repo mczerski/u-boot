@@ -38,7 +38,7 @@
 #define ADC_CSTART 4
 
 #define READ_CFR 0x90 	/* 0x9000 read Configuration register command */
-/* 
+/*
  * Configuration register settings, ref. page 7 in data sheet.
  * D11 	-  1 - Internal reference
  * D10 	-  1 - Internal reference = 2 V
@@ -48,12 +48,12 @@
  * D4,3	- 00 - N/A in single shot mode
  * D2	-  1 - EOC operation
  * D1,0	- 00 - FIFO trigger level (not used in single shot mode).
- * 
+ *
  * Register configuration = 0xC04
  */
 
 /* 0xAC84 internal reference 2V ,short sampling,SCLK,single shot,EOC */
-#define  WRITE_CFR_H  	0xAC  	
+#define  WRITE_CFR_H  	0xAC
 #define  WRITE_CFR_L	0x04
 /* Set test voltage to Analog GND (Channel 0-3) command */
 #define	 TEST_VOLTAGE_L 0xC0
@@ -70,7 +70,6 @@
 static int tlv2548_init(struct spi_slave *slave)
 {
  	ushort result = 0;
-	ushort data = 0;
 	u8 data_in[2];
 	u8 data_out[2];
 
@@ -81,7 +80,7 @@ static int tlv2548_init(struct spi_slave *slave)
 
 	/* Write iniatialization configuration */
 	spi_xfer(slave, 16, data_out, NULL, SPI_XFER_BEGIN | SPI_XFER_END);
-	
+
 	/* Initiate a read of the configuration */
 	data_out[0] = READ_CFR;
 	data_out[1] = 0;
@@ -118,7 +117,7 @@ static ushort tlv2548_read(struct spi_slave *slave, ushort channel)
 	 * According to Datasheet page 14, data is clocked out MSB (D15..D4).
 	 * so, shift result down >> 4 to get the real value
 	 */
-	result = (0x0fff & ((ushort)data_in[0] << 4)) | 
+	result = (0x0fff & ((ushort)data_in[0] << 4)) |
 		 (0x000f & ((ushort)data_in[1] >> 4));
 
 	/* LSB is noise according to datasheet, throw away */
@@ -178,10 +177,10 @@ void do_sensors()
 	}
 	printf("Texas Instrument TLV2548 AD converter "
 	       "detected and initiated\n");
-	
+
 	for (i = 0;i < ADC_CHANNELS; i++)
 		printf("-> Channel %d\t Raw: %d\n", i, tlv2548_read(slave, i));
-	
+
 	raw_data = tlv2548_read(slave, ADC_TEMP);
 	printf("Board temperature (Channel %d)\t Raw %d  \t%d (C)\n",
 	       ADC_TEMP, raw_data, (int) calc_board_temp(raw_data));
