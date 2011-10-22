@@ -113,6 +113,19 @@ __reset:
 	l.bf	.L_reloc
 	l.addi	r4,r4,4			/* delay slot */
 	
+#ifdef CONFIG_SYS_RELOCATE_VECTORS
+	/* Relocate vectors from 0xf0000000 to 0x00000000 */
+	l.movhi r4, 0xf000 /* source */
+	l.movhi r5, 0      /* destination */
+	l.addi	r6, r5, CONFIG_SYS_VECTORS_LEN /* length */
+.L_relocvectors:
+	l.lwz	r7, 0(r4)
+	l.sw	0(r5), r7
+	l.addi	r5, r5, 4
+	l.sfeq	r5,r6
+	l.bnf	.L_relocvectors
+	l.addi	r4,r4, 4
+#endif
 	/* Jump to board initialisation code */
 	LOAD_SYMBOL_2_GPR(r4, _start)
 	l.jr    r4
