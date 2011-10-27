@@ -26,7 +26,13 @@ obj := $(OBJTREE)/spl/
 HAVE_VENDOR_COMMON_LIB := $(shell [ -f $(SRCTREE)/board/$(VENDOR)/common/Makefile ] \
 			&& echo y || echo n)
 
-START := $(CPUDIR)/start.o
+ifdef	CONFIG_SPL_START_S_PATH
+START_PATH := $(subst ",,$(CONFIG_SPL_START_S_PATH))
+else
+START_PATH := $(CPUDIR)
+endif
+
+START := $(START_PATH)/start.o
 
 LIBS-y += arch/$(ARCH)/lib/lib$(ARCH).o
 LIBS-y += $(CPUDIR)/lib$(CPU).o
@@ -46,6 +52,8 @@ LIBS-$(CONFIG_SPL_SPI_FLASH_SUPPORT) += drivers/mtd/spi/libspi_flash.o
 LIBS-$(CONFIG_SPL_SPI_SUPPORT) += drivers/spi/libspi.o
 LIBS-$(CONFIG_SPL_FAT_SUPPORT) += fs/fat/libfat.o
 LIBS-$(CONFIG_SPL_LIBGENERIC_SUPPORT) += lib/libgeneric.o
+LIBS-$(CONFIG_SPL_POWER_SUPPORT) += drivers/power/libpower.o
+LIBS-$(CONFIG_SPL_NAND_SUPPORT) += drivers/mtd/nand/libnand.o
 
 ifeq ($(SOC),omap3)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
@@ -119,7 +127,7 @@ $(obj)u-boot-spl:	depend $(START) $(LIBS) $(obj)u-boot-spl.lds
 	$(GEN_UBOOT)
 
 $(START):	depend
-	$(MAKE) -C $(SRCTREE)/$(CPUDIR) $@
+	$(MAKE) -C $(SRCTREE)/$(START_PATH) $@
 
 $(LIBS):	depend
 	$(MAKE) -C $(SRCTREE)$(dir $(subst $(SPLTREE),,$@))

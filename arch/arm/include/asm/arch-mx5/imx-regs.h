@@ -100,6 +100,9 @@
 #define PLL1_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00080000)
 #define PLL2_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00084000)
 #define PLL3_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00088000)
+#ifdef	CONFIG_MX53
+#define PLL4_BASE_ADDR		(AIPS2_BASE_ADDR + 0x0008c000)
+#endif
 #define AHBMAX_BASE_ADDR	(AIPS2_BASE_ADDR + 0x00094000)
 #define IIM_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00098000)
 #define CSU_BASE_ADDR		(AIPS2_BASE_ADDR + 0x0009C000)
@@ -281,8 +284,6 @@
 
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>
-
-extern void imx_get_mac_from_fuse(unsigned char *mac);
 
 #define __REG(x)	(*((volatile u32 *)(x)))
 #define __REG16(x)	(*((volatile u16 *)(x)))

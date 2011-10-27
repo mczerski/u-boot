@@ -32,6 +32,7 @@
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_TEXT_BASE		0xA0000000
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_ZMX25
 /*
  * Environment settings
  */
@@ -76,7 +77,6 @@
 #define CONFIG_FEC_MXC
 #define CONFIG_FEC_MXC_PHYADDR		0x00
 #define CONFIG_MII
-#define CONFIG_NET_MULTI
 
 /*
  * BOOTP options

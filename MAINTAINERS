@@ -134,14 +134,6 @@ Wolfgang Denk <wd@denx.de>
 	PCIPPC2		MPC750
 	PCIPPC6		MPC750
 
-Jon Diekema <jon.diekema@smiths-aerospace.com>
-
-	sbc8260		MPC8260
-
-Alex Dubov <oakad@yahoo.com>
-
-	mpq101		MPC8548
-
 Phil Edworthy <phil.edworthy@renesas.com>
 
 	rsk7264		SH7264
@@ -354,11 +346,6 @@ Werner Pfister <Pfister_Werner@intercontrol.de>
 Kim Phillips <kim.phillips@freescale.com>
 
 	MPC8349EMDS	MPC8349
-
-Daniel Poirot <dan.poirot@windriver.com>
-
-	sbc8240		MPC8240
-	sbc405		PPC405GP
 
 Sergei Poselenov <sposelenov@emcraft.com>
 
@@ -634,6 +621,7 @@ Kristoffer Ericson <kristoffer.ericson@gmail.com>
 
 Fabio Estevam <fabio.estevam@freescale.com>
 
+	mx25pdk		i.MX25
 	mx31pdk		i.MX31
 	mx53ard		i.MX53
 	mx53smd		i.MX53
@@ -786,7 +774,6 @@ John Rigby <jcrigby@gmail.com>
 
 Stefan Roese <sr@denx.de>
 
-	ixdpg425	xscale/ixp
 	pdnb3		xscale/ixp
 	scpu		xscale/ixp
 
@@ -798,8 +785,6 @@ Nomadik Linux Team <STN_WMM_nomadik_linux@list.st.com>
 Steve Sakoman <sakoman@gmail.com>
 
 	omap3_overo	ARM ARMV7 (OMAP3xx SoC)
-	omap4_panda	ARM ARMV7 (OMAP4xx SoC)
-	omap4_sdp4430	ARM ARMV7 (OMAP4xx SoC)
 
 Jens Scharsig <esw@bus-elektronik.de>
 
@@ -839,6 +824,11 @@ Greg Ungerer <greg.ungerer@opengear.com>
 	cm4116		ks8695p
 	cm4148		ks8695p
 
+Aneesh V <aneesh@ti.com>
+
+	omap4_panda	ARM ARMV7 (OMAP4xx SoC)
+	omap4_sdp4430	ARM ARMV7 (OMAP4xx SoC)
+
 Marek Vasut <marek.vasut@gmail.com>
 
 	balloon3	xscale/pxa
@@ -848,6 +838,7 @@ Marek Vasut <marek.vasut@gmail.com>
 	vpac270		xscale/pxa
 	zipitz2		xscale/pxa
  	efikamx		i.MX51
+	efikasb		i.MX51
 
 Hugo Villeneuve <hugo.villeneuve@lyrtech.com>
 
@@ -894,7 +885,6 @@ Unknown / orphaned boards:
  	Board		CPU	Last known maintainer / Comment
 .........................................................................
 	cradle		xscale/pxa	Kyle Harris <kharris@nexus-tech.net> / dead address
-	ixdp425		xscale/ixp	Kyle Harris <kharris@nexus-tech.net> / dead address
 	lubbock		xscale/pxa	Kyle Harris <kharris@nexus-tech.net> / dead address
 
 	imx31_phycore_eet i.MX31  Guennadi Liakhovetski <g.liakhovetski@gmx.de> / resigned
@@ -933,6 +923,10 @@ Vlad Lungu <vlad.lungu@windriver.com>
 Stefan Roese <sr@denx.de>
 
 	vct_xxx		MIPS32 4Kc
+
+Xiangfu Liu <xiangfu@openmobilefree.net>
+
+	qi_lb60		MIPS32 (XBurst Jz4740 SoC)
 
 #########################################################################
 # Nios-II Systems:							#
@@ -1124,6 +1118,17 @@ Haitao Zhang <hzhang@ucrobotics.com>
 Chong Huang <chuang@ucrobotics.com>
 
 	bf525-ucr2	BF525
+
+#########################################################################
+# NDS32 Systems:							#
+#									#
+# Maintainer Name, Email Address					#
+#	Board		CPU						#
+#########################################################################
+
+Macpaul Lin <macpaul@andestech.com>
+
+	ADP-AG101	N1213 (AG101 SoC)
 
 #########################################################################
 # End of MAINTAINERS list						#

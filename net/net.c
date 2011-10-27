@@ -169,14 +169,12 @@ uchar		NetCDPAddr[6] = { 0x01, 0x00, 0x0c, 0xcc, 0xcc, 0xcc };
 #endif
 /* Network loop state */
 int		NetState;
-#ifdef CONFIG_NET_MULTI
 /* Tried all network devices */
 int		NetRestartWrap;
 /* Network loop restarted */
 static int	NetRestarted;
 /* At least one device configured */
 static int	NetDevExists;
-#endif
 
 /* XXX in both little & big endian machines 0xFFFF == ntohs(-1) */
 /* default is without VLAN */
@@ -217,6 +215,7 @@ volatile uchar *NetRxPackets[PKTBUFSRX];
 
 /* Current RX packet handler */
 static rxhand_f *packetHandler;
+static rxhand_icmp_f *packet_icmp_handler;	/* Current ICMP rx handler */
 /* Current timeout handler */
 static thand_f *timeHandler;
 /* Time base value */
@@ -226,7 +225,7 @@ static ulong	timeDelta;
 /* THE transmit packet */
 volatile uchar *NetTxPacket;
 
-static int net_check_prereq(proto_t protocol);
+static int net_check_prereq(enum proto_t protocol);
 
 static int NetTryCount;
 
@@ -312,8 +311,7 @@ void ArpTimeoutCheck(void)
 	}
 }
 
-static void
-NetInitLoop(proto_t protocol)
+static void NetInitLoop(enum proto_t protocol)
 {
 	static int env_changed_id;
 	bd_t *bd = gd->bd;
@@ -342,15 +340,13 @@ NetInitLoop(proto_t protocol)
  *	Main network processing loop.
  */
 
-int
-NetLoop(proto_t protocol)
+int NetLoop(enum proto_t protocol)
 {
 	bd_t *bd = gd->bd;
+	int ret = -1;
 
-#ifdef CONFIG_NET_MULTI
 	NetRestarted = 0;
 	NetDevExists = 0;
-#endif
 
 	/* XXX problem with bss workaround */
 	NetArpWaitPacketMAC = NULL;
@@ -379,20 +375,14 @@ NetLoop(proto_t protocol)
 	}
 
 	eth_halt();
-#ifdef CONFIG_NET_MULTI
 	eth_set_current();
-#endif
 	if (eth_init(bd) < 0) {
 		eth_halt();
 		return -1;
 	}
 
 restart:
-#ifdef CONFIG_NET_MULTI
 	memcpy(NetOurEther, eth_get_dev()->enetaddr, 6);
-#else
-	eth_getenv_enetaddr("ethaddr", NetOurEther);
-#endif
 
 	NetState = NETLOOP_CONTINUE;
 
@@ -409,20 +399,20 @@ restart:
 		eth_halt();
 		return -1;
 
-#ifdef CONFIG_NET_MULTI
 	case 2:
 		/* network device not configured */
 		break;
-#endif /* CONFIG_NET_MULTI */
 
 	case 0:
-#ifdef CONFIG_NET_MULTI
 		NetDevExists = 1;
-#endif
+		NetBootFileXferSize = 0;
 		switch (protocol) {
-		case TFTP:
+		case TFTPGET:
+#ifdef CONFIG_CMD_TFTPPUT
+		case TFTPPUT:
+#endif
 			/* always use ARP to get server ethernet address */
-			TftpStart();
+			TftpStart(protocol);
 			break;
 #ifdef CONFIG_CMD_TFTPSRV
 		case TFTPSRV:
@@ -484,7 +474,6 @@ restart:
 			break;
 		}
 
-		NetBootFileXferSize = 0;
 		break;
 	}
 
@@ -526,7 +515,7 @@ restart:
 		if (ctrlc()) {
 			eth_halt();
 			puts("\nAbort\n");
-			return -1;
+			goto done;
 		}
 
 		ArpTimeoutCheck();
@@ -562,9 +551,7 @@ restart:
 		switch (NetState) {
 
 		case NETLOOP_RESTART:
-#ifdef CONFIG_NET_MULTI
 			NetRestarted = 1;
-#endif
 			goto restart;
 
 		case NETLOOP_SUCCESS:
@@ -580,12 +567,19 @@ restart:
 				setenv("fileaddr", buf);
 			}
 			eth_halt();
-			return NetBootFileXferSize;
+			ret = NetBootFileXferSize;
+			goto done;
 
 		case NETLOOP_FAIL:
-			return -1;
+			goto done;
 		}
 	}
+
+done:
+	/* Clear out the handlers */
+	NetSetHandler(NULL);
+	net_set_icmp_handler(NULL);
+	return ret;
 }
 
 /**********************************************************************/
@@ -630,10 +624,6 @@ void NetStartAgain(void)
 
 	NetTryCount++;
 
-#ifndef CONFIG_NET_MULTI
-	NetSetTimeout(10000UL, startAgainTimeout);
-	NetSetHandler(startAgainHandler);
-#else	/* !CONFIG_NET_MULTI*/
 	eth_halt();
 #if !defined(CONFIG_NET_DO_NOT_TRY_ANOTHER)
 	eth_try_another(!NetRestarted);
@@ -650,7 +640,6 @@ void NetStartAgain(void)
 	} else {
 		NetState = NETLOOP_RESTART;
 	}
-#endif	/* CONFIG_NET_MULTI */
 }
 
 /**********************************************************************/
@@ -664,6 +653,10 @@ NetSetHandler(rxhand_f *f)
 	packetHandler = f;
 }
 
+void net_set_icmp_handler(rxhand_icmp_f *f)
+{
+	packet_icmp_handler = f;
+}
 
 void
 NetSetTimeout(ulong iv, thand_f *f)
@@ -816,9 +809,7 @@ PingHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 
 static void PingStart(void)
 {
-#if defined(CONFIG_NET_MULTI)
 	printf("Using %s device\n", eth_get_name());
-#endif	/* CONFIG_NET_MULTI */
 	NetSetTimeout(10000UL, PingTimeout);
 	NetSetHandler(PingHandler);
 
@@ -1168,9 +1159,7 @@ CDPHandler(const uchar *pkt, unsigned len)
 
 static void CDPStart(void)
 {
-#if defined(CONFIG_NET_MULTI)
 	printf("Using %s device\n", eth_get_name());
-#endif
 	CDPSeq = 0;
 	CDPOK = 0;
 
@@ -1355,6 +1344,66 @@ static inline IP_t *NetDefragment(IP_t *ip, int *lenp)
 	return NULL;
 }
 #endif
+
+/**
+ * Receive an ICMP packet. We deal with REDIRECT and PING here, and silently
+ * drop others.
+ *
+ * @parma ip	IP packet containing the ICMP
+ */
+static void receive_icmp(IP_t *ip, int len, IPaddr_t src_ip, Ethernet_t *et)
+{
+	ICMP_t *icmph = (ICMP_t *)&ip->udp_src;
+
+	switch (icmph->type) {
+	case ICMP_REDIRECT:
+		if (icmph->code != ICMP_REDIR_HOST)
+			return;
+		printf(" ICMP Host Redirect to %pI4 ",
+			&icmph->un.gateway);
+		break;
+#if defined(CONFIG_CMD_PING)
+	case ICMP_ECHO_REPLY:
+		/*
+			* IP header OK.  Pass the packet to the
+			* current handler.
+			*/
+		/*
+		 * XXX point to ip packet - should this use
+		 * packet_icmp_handler?
+		 */
+		(*packetHandler)((uchar *)ip, 0, src_ip, 0, 0);
+		break;
+	case ICMP_ECHO_REQUEST:
+		debug("Got ICMP ECHO REQUEST, return %d bytes\n",
+			ETHER_HDR_SIZE + len);
+
+		memcpy(&et->et_dest[0], &et->et_src[0], 6);
+		memcpy(&et->et_src[0], NetOurEther, 6);
+
+		ip->ip_sum = 0;
+		ip->ip_off = 0;
+		NetCopyIP((void *)&ip->ip_dst, &ip->ip_src);
+		NetCopyIP((void *)&ip->ip_src, &NetOurIP);
+		ip->ip_sum = ~NetCksum((uchar *)ip,
+					IP_HDR_SIZE_NO_UDP >> 1);
+
+		icmph->type = ICMP_ECHO_REPLY;
+		icmph->checksum = 0;
+		icmph->checksum = ~NetCksum((uchar *)icmph,
+			(len - IP_HDR_SIZE_NO_UDP) >> 1);
+		(void) eth_send((uchar *)et,
+				ETHER_HDR_SIZE + len);
+		break;
+#endif
+	default:
+		if (packet_icmp_handler)
+			packet_icmp_handler(icmph->type, icmph->code,
+				ntohs(ip->udp_dst), src_ip, ntohs(ip->udp_src),
+				icmph->un.data, ntohs(ip->udp_len));
+		break;
+	}
+}
 
 void
 NetReceive(volatile uchar *inpkt, int len)
@@ -1640,51 +1689,14 @@ NetReceive(volatile uchar *inpkt, int len)
 		 * subnet. So this is probably a warning that your
 		 * configuration might be wrong. But I'm not really
 		 * sure if there aren't any other situations.
+		 *
+		 * Simon Glass <sjg@chromium.org>: We get an ICMP when
+		 * we send a tftp packet to a dead connection, or when
+		 * there is no server at the other end.
 		 */
 		if (ip->ip_p == IPPROTO_ICMP) {
-			ICMP_t *icmph = (ICMP_t *)&(ip->udp_src);
-
-			switch (icmph->type) {
-			case ICMP_REDIRECT:
-				if (icmph->code != ICMP_REDIR_HOST)
-					return;
-				printf(" ICMP Host Redirect to %pI4 ",
-					&icmph->un.gateway);
-				return;
-#if defined(CONFIG_CMD_PING)
-			case ICMP_ECHO_REPLY:
-				/*
-				 * IP header OK.  Pass the packet to the
-				 * current handler.
-				 */
-				/* XXX point to ip packet */
-				(*packetHandler)((uchar *)ip, 0, src_ip, 0, 0);
-				return;
-			case ICMP_ECHO_REQUEST:
-				debug("Got ICMP ECHO REQUEST, return %d bytes\n",
-				      ETHER_HDR_SIZE + len);
-
-				memcpy(&et->et_dest[0], &et->et_src[0], 6);
-				memcpy(&et->et_src[0], NetOurEther, 6);
-
-				ip->ip_sum = 0;
-				ip->ip_off = 0;
-				NetCopyIP((void *)&ip->ip_dst, &ip->ip_src);
-				NetCopyIP((void *)&ip->ip_src, &NetOurIP);
-				ip->ip_sum = ~NetCksum((uchar *)ip,
-						       IP_HDR_SIZE_NO_UDP >> 1);
-
-				icmph->type = ICMP_ECHO_REPLY;
-				icmph->checksum = 0;
-				icmph->checksum = ~NetCksum((uchar *)icmph,
-					(len - IP_HDR_SIZE_NO_UDP) >> 1);
-				(void) eth_send((uchar *)et,
-						ETHER_HDR_SIZE + len);
-				return;
-#endif
-			default:
-				return;
-			}
+			receive_icmp(ip, len, src_ip, et);
+			return;
 		} else if (ip->ip_p != IPPROTO_UDP) {	/* Only UDP packets */
 			return;
 		}
@@ -1753,7 +1765,7 @@ NetReceive(volatile uchar *inpkt, int len)
 
 /**********************************************************************/
 
-static int net_check_prereq(proto_t protocol)
+static int net_check_prereq(enum proto_t protocol)
 {
 	switch (protocol) {
 		/* Fall through */
@@ -1784,7 +1796,8 @@ static int net_check_prereq(proto_t protocol)
 #if defined(CONFIG_CMD_NFS)
 	case NFS:
 #endif
-	case TFTP:
+	case TFTPGET:
+	case TFTPPUT:
 		if (NetServerIP == 0) {
 			puts("*** ERROR: `serverip' not set\n");
 			return 1;
@@ -1810,7 +1823,6 @@ common:
 	case CDP:
 	case DHCP:
 		if (memcmp(NetOurEther, "\0\0\0\0\0\0", 6) == 0) {
-#ifdef CONFIG_NET_MULTI
 			extern int eth_get_dev_index(void);
 			int num = eth_get_dev_index();
 
@@ -1829,10 +1841,6 @@ common:
 
 			NetStartAgain();
 			return 2;
-#else
-			puts("*** ERROR: `ethaddr' not set\n");
-			return 1;
-#endif
 		}
 		/* Fall through */
 	default:

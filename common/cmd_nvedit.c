@@ -79,6 +79,8 @@ SPI_FLASH|MG_DISK|NVRAM|MMC} or CONFIG_ENV_IS_NOWHERE
 #define	MAX_ENV_SIZE	(1 << 20)	/* 1 MiB */
 
 ulong load_addr = CONFIG_SYS_LOAD_ADDR;	/* Default Load Address */
+ulong save_addr;			/* Default Save Address */
+ulong save_size;			/* Default Save Size (in bytes) */
 
 /*
  * Table with supported baudrates (defined in config_xyz.h)
@@ -377,6 +379,36 @@ int setenv(const char *varname, const char *varvalue)
 		return _do_env_set(0, 3, (char * const *)argv);
 }
 
+/**
+ * Set an environment variable to an integer value
+ *
+ * @param varname	Environmet variable to set
+ * @param value		Value to set it to
+ * @return 0 if ok, 1 on error
+ */
+int setenv_ulong(const char *varname, ulong value)
+{
+	/* TODO: this should be unsigned */
+	char *str = simple_itoa(value);
+
+	return setenv(varname, str);
+}
+
+/**
+ * Set an environment variable to an address in hex
+ *
+ * @param varname	Environmet variable to set
+ * @param addr		Value to set it to
+ * @return 0 if ok, 1 on error
+ */
+int setenv_addr(const char *varname, const void *addr)
+{
+	char str[17];
+
+	sprintf(str, "%x", (uintptr_t)addr);
+	return setenv(varname, str);
+}
+
 int do_env_set(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	if (argc < 2)
@@ -460,7 +492,6 @@ int do_env_edit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char buffer[CONFIG_SYS_CBSIZE];
 	char *init_val;
-	int len;
 
 	if (argc < 2)
 		return cmd_usage(cmdtp);
@@ -468,7 +499,7 @@ int do_env_edit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	/* Set read buffer to initial value or empty sting */
 	init_val = getenv(argv[1]);
 	if (init_val)
-		len = sprintf(buffer, "%s", init_val);
+		sprintf(buffer, "%s", init_val);
 	else
 		buffer[0] = '\0';
 
@@ -539,6 +570,26 @@ int getenv_f(const char *name, char *buf, unsigned len)
 		return n;
 	}
 	return -1;
+}
+
+/**
+ * Decode the integer value of an environment variable and return it.
+ *
+ * @param name		Name of environemnt variable
+ * @param base		Number base to use (normally 10, or 16 for hex)
+ * @param default_val	Default value to return if the variable is not
+ *			found
+ * @return the decoded value, or default_val if not found
+ */
+ulong getenv_ulong(const char *name, int base, ulong default_val)
+{
+	/*
+	 * We can use getenv() here, even before relocation, since the
+	 * environment variable value is an integer and thus short.
+	 */
+	const char *str = getenv(name);
+
+	return str ? simple_strtoul(str, NULL, base) : default_val;
 }
 
 #if defined(CONFIG_CMD_SAVEENV) && !defined(CONFIG_ENV_IS_NOWHERE)

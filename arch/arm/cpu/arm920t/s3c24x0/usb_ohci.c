@@ -765,10 +765,9 @@ static void td_submit_job(struct usb_device *dev, unsigned long pipe,
 
 static void dl_transfer_length(struct td *td)
 {
-	__u32 tdINFO, tdBE, tdCBP;
+	__u32 tdBE, tdCBP;
 	struct urb_priv *lurb_priv = &urb_priv;
 
-	tdINFO = m32_swap(td->hwINFO);
 	tdBE = m32_swap(td->hwBE);
 	tdCBP = m32_swap(td->hwCBP);
 
@@ -1541,7 +1540,6 @@ static int hc_start(struct ohci *ohci)
 	writel(RH_HS_LPSC, &ohci->regs->roothub.status);
 #endif /* OHCI_USE_NPS */
 
-#define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 	/* POTPGT delay is bits 24-31, in 2 ms units. */
 	mdelay((roothub_a(ohci) >> 23) & 0x1fe);
 

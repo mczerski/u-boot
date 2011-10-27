@@ -29,6 +29,8 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX53_ARD
+
 #include <asm/arch/imx-regs.h>
 
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
@@ -66,7 +68,6 @@
 
 /* Eth Configs */
 #define CONFIG_HAS_ETH1
-#define CONFIG_NET_MULTI
 #define CONFIG_MII
 #define CONFIG_MII_GASKET
 #define CONFIG_DISCOVER_PHY

@@ -399,7 +399,6 @@
 #define CONFIG_SYS_PCIE2_IO_SIZE	0x00800000
 
 #ifdef CONFIG_PCI
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
 #undef CONFIG_PCI_SCAN_SHOW	/* show pci devices on startup */
@@ -411,7 +410,6 @@
  */
 #ifdef CONFIG_TSEC_ENET
 
-#define CONFIG_NET_MULTI
 #define CONFIG_GMII			/* MII PHY management */
 
 #define CONFIG_TSEC1
@@ -644,9 +642,9 @@
 #define CONFIG_NETDEV		eth1
 
 #define CONFIG_HOSTNAME		mpc837x_rdb
-#define CONFIG_ROOTPATH		/nfsroot
+#define CONFIG_ROOTPATH		"/nfsroot"
 #define CONFIG_RAMDISKFILE	rootfs.ext2.gz.uboot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 #define CONFIG_FDTFILE		mpc8379_rdb.dtb
 

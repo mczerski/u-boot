@@ -105,13 +105,64 @@ ulong imx_get_perclk (int clk)
 	return lldiv (fref, div);
 }
 
+u32 get_cpu_rev(void)
+{
+	u32 srev;
+	u32 system_rev = 0x25000;
+
+	/* read SREV register from IIM module */
+	struct iim_regs *iim = (struct iim_regs *)IMX_IIM_BASE;
+	srev = readl(&iim->iim_srev);
+
+	switch (srev) {
+	case 0x00:
+		system_rev |= CHIP_REV_1_0;
+		break;
+	case 0x01:
+		system_rev |= CHIP_REV_1_1;
+		break;
+	default:
+		system_rev |= 0x8000;
+		break;
+	}
+
+	return system_rev;
+}
+
 #if defined(CONFIG_DISPLAY_CPUINFO)
+static char *get_reset_cause(void)
+{
+	/* read RCSR register from CCM module */
+	struct ccm_regs *ccm =
+		(struct ccm_regs *)IMX_CCM_BASE;
+
+	u32 cause = readl(&ccm->rcsr) & 0x0f;
+
+	if (cause == 0)
+		return "POR";
+	else if (cause == 1)
+		return "RST";
+	else if ((cause & 2) == 2)
+		return "WDOG";
+	else if ((cause & 4) == 4)
+		return "SW RESET";
+	else if ((cause & 8) == 8)
+		return "JTAG";
+	else
+		return "unknown reset";
+
+}
+
 int print_cpuinfo (void)
 {
 	char buf[32];
+	u32 cpurev = get_cpu_rev();
 
-	printf ("CPU:   Freescale i.MX25 at %s MHz\n\n",
+	printf("CPU:   Freescale i.MX25 rev%d.%d%s at %s MHz\n",
+		(cpurev & 0xF0) >> 4, (cpurev & 0x0F),
+		((cpurev & 0x8000) ? " unknown" : ""),
 		strmhz (buf, imx_get_armclk ()));
+	printf("Reset cause: %s\n\n", get_reset_cause());
 	return 0;
 }
 #endif

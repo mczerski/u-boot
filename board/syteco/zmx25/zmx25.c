@@ -117,8 +117,6 @@ int board_init()
 	writel(input_select1, &inputselect->i2c3_ipp_sda_in);	/* I2C3 SDA */
 	writel(input_select2, &inputselect->i2c3_ipp_scl_in);	/* I2C3 SCL */
 
-	/* board id for linux */
-	gd->bd->bi_arch_number = MACH_TYPE_ZMX25;
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	return 0;
@@ -187,10 +185,4 @@ int dram_init(void)
 	gd->ram_size = get_ram_size((void *)PHYS_SDRAM,
 				PHYS_SDRAM_SIZE);
 	return 0;
-}
-
-void dram_init_banksize(void)
-{
-	gd->bd->bi_dram[0].start = PHYS_SDRAM;
-	gd->bd->bi_dram[0].size = gd->ram_size;
 }

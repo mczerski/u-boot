@@ -318,7 +318,6 @@
 
 #ifdef CONFIG_PCI
 #define CONFIG_PCI_SKIP_HOST_BRIDGE
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
 #undef CONFIG_EEPRO100
@@ -326,11 +325,6 @@
 #define CONFIG_SYS_PCI_SUBSYS_VENDORID	0x1957	/* Freescale */
 
 #endif	/* CONFIG_PCI */
-
-
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
 
 /*
  * QE UEC ethernet configuration
@@ -525,9 +519,9 @@
 #define CONFIG_NETDEV		eth1
 
 #define CONFIG_HOSTNAME		mpc8323erdb
-#define CONFIG_ROOTPATH		/nfsroot
+#define CONFIG_ROOTPATH		"/nfsroot"
 #define CONFIG_RAMDISKFILE	rootfs.ext2.gz.uboot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 #define CONFIG_FDTFILE		mpc832x_rdb.dtb
 

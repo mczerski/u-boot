@@ -128,6 +128,7 @@ typedef volatile unsigned int *	dv_reg_p;
 #define DAVINCI_TIMER0_BASE			0x01c20000
 #define DAVINCI_TIMER1_BASE			0x01c21000
 #define DAVINCI_WDOG_BASE			0x01c21000
+#define DAVINCI_RTC_BASE			0x01c23000
 #define DAVINCI_PLL_CNTRL0_BASE			0x01c11000
 #define DAVINCI_PLL_CNTRL1_BASE			0x01e1a000
 #define DAVINCI_PSC0_BASE			0x01c10000
@@ -141,8 +142,11 @@ typedef volatile unsigned int *	dv_reg_p;
 #define DAVINCI_EMAC_WRAPPER_CNTRL_REGS_BASE	0x01e22000
 #define DAVINCI_EMAC_WRAPPER_RAM_BASE		0x01e20000
 #define DAVINCI_MDIO_CNTRL_REGS_BASE		0x01e24000
+#define DAVINCI_SYSCFG1_BASE			0x01e2c000
 #define DAVINCI_MMC_SD0_BASE			0x01c40000
 #define DAVINCI_MMC_SD1_BASE			0x01e1b000
+#define DAVINCI_TIMER2_BASE			0x01f0c000
+#define DAVINCI_TIMER3_BASE			0x01f0d000
 #define DAVINCI_ASYNC_EMIF_CNTRL_BASE		0x68000000
 #define DAVINCI_ASYNC_EMIF_DATA_CE0_BASE	0x40000000
 #define DAVINCI_ASYNC_EMIF_DATA_CE2_BASE	0x60000000
@@ -318,6 +322,11 @@ void davinci_errata_workarounds(void);
 
 #else /* CONFIG_SOC_DA8XX */
 
+#define	PSC_ENABLE		0x3
+#define	PSC_DISABLE		0x2
+#define	PSC_SYNCRESET		0x1
+#define	PSC_SWRSTDISABLE	0x0
+
 #define PSC_PSC0_MODULE_ID_CNT		16
 #define PSC_PSC1_MODULE_ID_CNT		32
 
@@ -444,6 +453,27 @@ struct davinci_syscfg_regs {
 #define DAVINCI_SYSCFG_SUSPSRC_SPI1		(1 << 22)
 #define DAVINCI_SYSCFG_SUSPSRC_UART2		(1 << 20)
 #define DAVINCI_SYSCFG_SUSPSRC_TIMER0		(1 << 27)
+
+struct davinci_syscfg1_regs {
+	dv_reg	vtpio_ctl;
+	dv_reg	ddr_slew;
+	dv_reg	deepsleep;
+	dv_reg	pupd_ena;
+	dv_reg	pupd_sel;
+	dv_reg	rxactive;
+	dv_reg	pwrdwn;
+};
+
+#define davinci_syscfg1_regs \
+	((struct davinci_syscfg1_regs *)DAVINCI_SYSCFG1_BASE)
+
+#define DDR_SLEW_CMOSEN_BIT	4
+
+#define VTP_POWERDWN		(1 << 6)
+#define VTP_LOCK		(1 << 7)
+#define VTP_CLKRZ		(1 << 13)
+#define VTP_READY		(1 << 15)
+#define VTP_IOPWRDWN		(1 << 14)
 
 /* Interrupt controller */
 struct davinci_aintc_regs {

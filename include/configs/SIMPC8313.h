@@ -272,7 +272,6 @@
  */
 #define CONFIG_TSEC_ENET		/* TSEC ethernet support */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_GMII			/* MII PHY management */
 
 #ifdef CONFIG_TSEC1
@@ -490,8 +489,8 @@
 #define CONFIG_NETDEV		eth1
 
 #define CONFIG_HOSTNAME		simpc8313
-#define CONFIG_ROOTPATH		/tftpboot/
-#define CONFIG_BOOTFILE		/tftpboot/uImage
+#define CONFIG_ROOTPATH		"/tftpboot/"
+#define CONFIG_BOOTFILE		"/tftpboot/uImage"
 #define CONFIG_UBOOTPATH	u-boot-nand.bin	/* U-Boot image on TFTP server */
 #define CONFIG_FDTFILE		simpc8313.dtb
 

@@ -31,6 +31,10 @@
  */
 /* An i.MX51 CPU */
 #define CONFIG_MX51
+
+#define	machine_is_efikamx()	(CONFIG_MACH_TYPE == MACH_TYPE_MX51_EFIKAMX)
+#define	machine_is_efikasb()	(CONFIG_MACH_TYPE == MACH_TYPE_MX51_EFIKASB)
+
 #include <asm/arch/imx-regs.h>
 
 #define CONFIG_SYS_MX5_HCLK		24000000
@@ -230,6 +234,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 #define CONFIG_SYS_DDR_CLKSEL		0
-#define CONFIG_SYS_CLKTL_CBCDR		0x59E35100
+#define CONFIG_SYS_CLKTL_CBCDR		0x59E35145
 
 #endif

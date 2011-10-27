@@ -35,6 +35,8 @@
 
 #define CONFIG_SYS_TEXT_BASE		0xA0000000
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX31ADS
+
 /*
  * Disabled for now due to build problems under Debian and a significant increase
  * in the final file size: 144260 vs. 109536 Bytes.
@@ -113,7 +115,6 @@
 		"cp.b ${loadaddr} ${uboot_addr} ${filesize}; "		\
 		"setenv filesize; saveenv\0"
 
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900
 #define CONFIG_CS8900_BASE	0xb4020300
 #define CONFIG_CS8900_BUS16		1	/* follow the Linux driver */

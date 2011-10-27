@@ -36,7 +36,6 @@
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_FEC_MXC
 extern void mx25_fec_init_pins(void);
-extern void imx_get_mac_from_fuse(unsigned char *mac);
 #endif
 
 /* Clock Control Module (CCM) registers */
@@ -350,5 +349,8 @@ struct aips_regs {
 #define GPIO2_BASE_ADDR		IMX_GPIO2_BASE
 #define GPIO3_BASE_ADDR		IMX_GPIO3_BASE
 #define GPIO4_BASE_ADDR		IMX_GPIO4_BASE
+
+#define CHIP_REV_1_0		0x10
+#define CHIP_REV_1_1		0x11
 
 #endif				/* _IMX_REGS_H */

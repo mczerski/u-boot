@@ -54,7 +54,7 @@
 
 #include "asm/arch/config.h"
 
-#define CONFIG_SYS_TEXT_BASE	0x04000000	/* code address after reloc */
+#define CONFIG_SYS_TEXT_BASE	0x07d00000	/* code address before reloc */
 #define CONFIG_SYS_MEMTEST_START 0x00400000	/* 4M */
 #define CONFIG_SYS_MEMTEST_END	0x007fffff	/*(_8M -1) */
 #define CONFIG_SYS_LOAD_ADDR	0x00800000	/* default load adr- 8M */
@@ -153,7 +153,6 @@
  * Ethernet Driver configuration
  */
 #define CONFIG_NETCONSOLE	/* include NetConsole support   */
-#define CONFIG_NET_MULTI	/* specify more that one ports available */
 #define CONFIG_MII		/* expose smi ove miiphy interface */
 #define CONFIG_MVGBE		/* Enable Marvell Gbe Controller Driver */
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN	/* detect link using phy */
@@ -271,5 +270,11 @@ int get_scl(void);
 #define CONFIG_KM_RESERVED_PRAM 0x801000
 /* address for the bootcount (taken from end of RAM) */
 #define BOOTCOUNT_ADDR          (CONFIG_KM_RESERVED_PRAM)
+
+/* enable POST tests */
+#define CONFIG_POST	(CONFIG_SYS_POST_MEM_REGIONS)
+#define CONFIG_POST_SKIP_ENV_FLAGS
+#define CONFIG_POST_EXTERNAL_WORD_FUNCS
+#define CONFIG_CMD_DIAG
 
 #endif /* _CONFIG_KM_ARM_H */

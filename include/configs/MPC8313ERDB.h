@@ -372,7 +372,6 @@
  */
 #define CONFIG_TSEC_ENET		/* TSEC ethernet support */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_GMII			/* MII PHY management */
 
 #ifdef CONFIG_TSEC1
@@ -598,8 +597,8 @@
 #define CONFIG_NETDEV		eth1
 
 #define CONFIG_HOSTNAME		mpc8313erdb
-#define CONFIG_ROOTPATH		/nfs/root/path
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/nfs/root/path"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 #define CONFIG_FDTFILE		mpc8313erdb.dtb
 

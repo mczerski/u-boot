@@ -384,7 +384,6 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_SYS_PCI2_IO_SIZE	0x01000000	/* 16M */
 #endif
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 
 #ifndef CONFIG_PCI_PNP
@@ -408,7 +407,6 @@ boards, we say we have two, but don't display a message if we find only one. */
 
 #ifdef CONFIG_TSEC_ENET
 
-#define CONFIG_NET_MULTI
 #define CONFIG_MII
 #define CONFIG_PHY_GIGE		/* In case CONFIG_CMD_MII is specified */
 
@@ -683,8 +681,8 @@ boards, we say we have two, but don't display a message if we find only one. */
 #endif
 
 /* Default path and filenames */
-#define CONFIG_ROOTPATH		/nfsroot/rootfs
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/nfsroot/rootfs"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 
 #ifdef CONFIG_MPC8349ITX
@@ -700,7 +698,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 
 #define CONFIG_BOOTARGS \
 	"root=/dev/nfs rw" \
-	" nfsroot=" MK_STR(CONFIG_SERVERIP) ":" MK_STR(CONFIG_ROOTPATH) \
+	" nfsroot=" MK_STR(CONFIG_SERVERIP) ":" CONFIG_ROOTPATH		\
 	" ip=" MK_STR(CONFIG_IPADDR) ":" MK_STR(CONFIG_SERVERIP) ":"	\
 		MK_STR(CONFIG_GATEWAYIP) ":" MK_STR(CONFIG_NETMASK) ":" \
 		MK_STR(CONFIG_HOSTNAME) ":" MK_STR(CONFIG_NETDEV) ":off" \

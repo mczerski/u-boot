@@ -194,13 +194,13 @@
 /* Environment information */
 #define CONFIG_BOOTDELAY	10
 
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_BOOTFILE		"uImage"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
 	"usbtty=cdc_acm\0" \
 	"mmcdev=0\0" \
-	"console=ttyS2,115200n8\0" \
+	"console=ttyO0,115200n8\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait\0" \
@@ -345,7 +345,6 @@
  */
 #if defined(CONFIG_CMD_NET)
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_32_BIT
 #define CONFIG_SMC911X_BASE	0x2C000000

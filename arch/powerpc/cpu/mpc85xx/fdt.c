@@ -361,6 +361,7 @@ void fdt_add_enet_stashing(void *fdt)
 }
 
 #if defined(CONFIG_SYS_DPAA_FMAN) || defined(CONFIG_SYS_DPAA_PME)
+#ifdef CONFIG_SYS_DPAA_FMAN
 static void ft_fixup_clks(void *blob, const char *compat, u32 offset,
 			  unsigned long freq)
 {
@@ -374,18 +375,21 @@ static void ft_fixup_clks(void *blob, const char *compat, u32 offset,
 				"for %s: %s\n", compat, fdt_strerror(off));
 	}
 }
+#endif
 
 static void ft_fixup_dpaa_clks(void *blob)
 {
 	sys_info_t sysinfo;
 
 	get_sys_info(&sysinfo);
+#ifdef CONFIG_SYS_DPAA_FMAN
 	ft_fixup_clks(blob, "fsl,fman", CONFIG_SYS_FSL_FM1_OFFSET,
 			sysinfo.freqFMan[0]);
 
 #if (CONFIG_SYS_NUM_FMAN == 2)
 	ft_fixup_clks(blob, "fsl,fman", CONFIG_SYS_FSL_FM2_OFFSET,
 			sysinfo.freqFMan[1]);
+#endif
 #endif
 
 #ifdef CONFIG_SYS_DPAA_PME
@@ -500,9 +504,8 @@ void fdt_fixup_fman_firmware(void *blob)
 		       fdt_strerror(rc));
 		return;
 	}
-	phandle = fdt_alloc_phandle(blob);
-	rc = fdt_setprop_cell(blob, fwnode, "linux,phandle", phandle);
-	if (rc < 0) {
+	phandle = fdt_create_phandle(blob, fwnode);
+	if (!phandle) {
 		char s[64];
 		fdt_get_path(blob, fwnode, s, sizeof(s));
 		printf("Could not add phandle property to node %s: %s\n", s,
@@ -532,6 +535,27 @@ void fdt_fixup_fman_firmware(void *blob)
 }
 #else
 #define fdt_fixup_fman_firmware(x)
+#endif
+
+#if defined(CONFIG_PPC_P4080) || defined(CONFIG_PPC_P3060)
+static void fdt_fixup_usb(void *fdt)
+{
+	ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+	u32 rcwsr11 = in_be32(&gur->rcwsr[11]);
+	int off;
+
+	off = fdt_node_offset_by_compatible(fdt, -1, "fsl,mpc85xx-usb2-mph");
+	if ((rcwsr11 & FSL_CORENET_RCWSR11_EC1) !=
+				FSL_CORENET_RCWSR11_EC1_FM1_USB1)
+		fdt_status_disabled(fdt, off);
+
+	off = fdt_node_offset_by_compatible(fdt, -1, "fsl,mpc85xx-usb2-dr");
+	if ((rcwsr11 & FSL_CORENET_RCWSR11_EC2) !=
+				FSL_CORENET_RCWSR11_EC2_USB2)
+		fdt_status_disabled(fdt, off);
+}
+#else
+#define fdt_fixup_usb(x)
 #endif
 
 void ft_cpu_setup(void *blob, bd_t *bd)
@@ -638,6 +662,8 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 
 	do_fixup_by_compat_u32(blob, "fsl,flexcan-v1.0",
 			"clock_freq", gd->bus_clk, 1);
+
+	fdt_fixup_usb(blob);
 }
 
 /*

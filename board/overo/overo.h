@@ -33,15 +33,6 @@ const omap3_sysinfo sysinfo = {
 #endif
 };
 
-/* GPMC CS 5 connected to an SMSC LAN9221 ethernet controller */
-#define NET_LAN9221_GPMC_CONFIG1    0x00001000
-#define NET_LAN9221_GPMC_CONFIG2    0x00080701
-#define NET_LAN9221_GPMC_CONFIG3    0x00020201
-#define NET_LAN9221_GPMC_CONFIG4    0x08030703
-#define NET_LAN9221_GPMC_CONFIG5    0x00060908
-#define NET_LAN9221_GPMC_CONFIG6    0x87030000
-#define NET_LAN9221_GPMC_CONFIG7    0x00000f6c
-
 /*
  * IEN  - Input Enable
  * IDIS - Input Disable
@@ -128,7 +119,7 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(GPMC_NCS6),		(IEN  | PTD | DIS | M0)) /*GPMC_nCS6*/\
 	MUX_VAL(CP(GPMC_NCS7),		(IEN  | PTU | EN  | M0)) /*GPMC_nCS7*/\
 	MUX_VAL(CP(GPMC_NBE1),		(IEN  | PTD | DIS | M0)) /*GPMC_nCS3*/\
-	MUX_VAL(CP(GPMC_CLK),		(IDIS | PTU | EN  | M0)) /*GPMC_CLK*/\
+	MUX_VAL(CP(GPMC_CLK),		(IEN  | PTU | EN  | M0)) /*GPMC_CLK*/\
 	MUX_VAL(CP(GPMC_NADV_ALE),	(IDIS | PTD | DIS | M0)) /*GPMC_nADV_ALE*/\
 	MUX_VAL(CP(GPMC_NOE),		(IDIS | PTD | DIS | M0)) /*GPMC_nOE*/\
 	MUX_VAL(CP(GPMC_NWE),		(IDIS | PTD | DIS | M0)) /*GPMC_nWE*/\

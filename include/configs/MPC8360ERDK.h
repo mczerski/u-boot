@@ -290,7 +290,6 @@
 
 #ifdef CONFIG_PCI
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
 #undef CONFIG_EEPRO100
@@ -298,11 +297,6 @@
 #define CONFIG_SYS_PCI_SUBSYS_VENDORID 0x1957	/* Freescale */
 
 #endif	/* CONFIG_PCI */
-
-
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
 
 /*
  * QE UEC ethernet configuration
@@ -505,9 +499,9 @@
 
 #define CONFIG_LOADADDR	a00000
 #define CONFIG_HOSTNAME	mpc8360erdk
-#define CONFIG_BOOTFILE	uImage
+#define CONFIG_BOOTFILE	"uImage"
 
-#define CONFIG_ROOTPATH		/nfsroot/
+#define CONFIG_ROOTPATH		"/nfsroot/"
 
 #define	CONFIG_BOOTDELAY 2	/* -1 disables auto-boot */
 #undef	CONFIG_BOOTARGS		/* the boot command will set bootargs */

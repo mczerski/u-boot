@@ -100,7 +100,7 @@ const uchar default_environment[] = {
 	"preboot="	CONFIG_PREBOOT			"\0"
 #endif
 #ifdef	CONFIG_ROOTPATH
-	"rootpath="	MK_STR(CONFIG_ROOTPATH)		"\0"
+	"rootpath="	CONFIG_ROOTPATH			"\0"
 #endif
 #ifdef	CONFIG_GATEWAYIP
 	"gatewayip="	MK_STR(CONFIG_GATEWAYIP)	"\0"
@@ -112,7 +112,7 @@ const uchar default_environment[] = {
 	"hostname="	MK_STR(CONFIG_HOSTNAME)		"\0"
 #endif
 #ifdef	CONFIG_BOOTFILE
-	"bootfile="	MK_STR(CONFIG_BOOTFILE)		"\0"
+	"bootfile="	CONFIG_BOOTFILE			"\0"
 #endif
 #ifdef	CONFIG_LOADADDR
 	"loadaddr="	MK_STR(CONFIG_LOADADDR)		"\0"

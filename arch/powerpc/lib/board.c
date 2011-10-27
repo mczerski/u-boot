@@ -158,13 +158,8 @@ typedef int (init_fnc_t) (void);
 
 static int init_baudrate (void)
 {
-	char tmp[64];	/* long enough for environment variables */
-	int i = getenv_f("baudrate", tmp, sizeof (tmp));
-
-	gd->baudrate = (i > 0)
-			? (int) simple_strtoul (tmp, NULL, 10)
-			: CONFIG_BAUDRATE;
-	return (0);
+	gd->baudrate = getenv_ulong("baudrate", 10, CONFIG_BAUDRATE);
+	return 0;
 }
 
 /***********************************************************************/
@@ -374,9 +369,7 @@ void board_init_f (ulong bootflag)
 	gd_t *id;
 	init_fnc_t **init_fnc_ptr;
 #ifdef CONFIG_PRAM
-	int i;
 	ulong reg;
-	uchar tmp[64];		/* long enough for environment variables */
 #endif
 
 	/* Pointer is writable since we allocated a register for it */
@@ -396,6 +389,13 @@ void board_init_f (ulong bootflag)
 			hang ();
 		}
 	}
+
+#ifdef CONFIG_POST
+	post_bootmode_init();
+	post_run(NULL, POST_ROM | post_bootmode_get(0));
+#endif
+
+	WATCHDOG_RESET();
 
 	/*
 	 * Now that we have DRAM mapped and working, we can
@@ -448,10 +448,9 @@ void board_init_f (ulong bootflag)
 	/*
 	 * reserve protected RAM
 	 */
-	i = getenv_f("pram", (char *)tmp, sizeof (tmp));
-	reg = (i > 0) ? simple_strtoul ((const char *)tmp, NULL, 10) : CONFIG_PRAM;
+	reg = getenv_ulong("pram", 10, CONFIG_PRAM);
 	addr -= (reg << 10);		/* size is in kB */
-	debug ("Reserving %ldk for protected RAM at %08lx\n", reg, addr);
+	debug("Reserving %ldk for protected RAM at %08lx\n", reg, addr);
 #endif /* CONFIG_PRAM */
 
 	/* round down to next 4 kB limit */
@@ -604,13 +603,6 @@ void board_init_f (ulong bootflag)
 
 	WATCHDOG_RESET ();
 
-#ifdef CONFIG_POST
-	post_bootmode_init();
-	post_run (NULL, POST_ROM | post_bootmode_get(0));
-#endif
-
-	WATCHDOG_RESET();
-
 	gd->relocaddr = addr; /* Record relocation address, useful for debug */
 
 	memcpy (id, (void *)gd, sizeof (gd_t));
@@ -631,7 +623,6 @@ void board_init_f (ulong bootflag)
  */
 void board_init_r (gd_t *id, ulong dest_addr)
 {
-	char *s;
 	bd_t *bd;
 	ulong malloc_start;
 
@@ -735,6 +726,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		flash_size = 0;
 	} else if ((flash_size = flash_init ()) > 0) {
 # ifdef CONFIG_SYS_FLASH_CHECKSUM
+		char *s;
+
 		print_size (flash_size, "");
 		/*
 		 * Compute and print flash CRC if flashchecksum is set to 'y'
@@ -933,12 +926,13 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	udelay (20);
 
 	/* Initialize from environment */
-	if ((s = getenv ("loadaddr")) != NULL) {
-		load_addr = simple_strtoul (s, NULL, 16);
-	}
+	load_addr = getenv_ulong("loadaddr", 16, load_addr);
 #if defined(CONFIG_CMD_NET)
-	if ((s = getenv ("bootfile")) != NULL) {
-		copy_filename (BootFile, s, sizeof (BootFile));
+	{
+		char *s = getenv("bootfile");
+
+		if (s != NULL)
+			copy_filename(BootFile, s, sizeof(BootFile));
 	}
 #endif
 
@@ -960,10 +954,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	bb_miiphy_init();
 #endif
 #if defined(CONFIG_CMD_NET)
-#if defined(CONFIG_NET_MULTI)
 	WATCHDOG_RESET ();
 	puts ("Net:   ");
-#endif
 	eth_initialize (bd);
 #endif
 
@@ -1020,18 +1012,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	 * taking into account the protected RAM at top of memory
 	 */
 	{
-		ulong pram;
+		ulong pram = 0;
 		uchar memsz[32];
-#ifdef CONFIG_PRAM
-		char *s;
 
-		if ((s = getenv ("pram")) != NULL) {
-			pram = simple_strtoul (s, NULL, 10);
-		} else {
-			pram = CONFIG_PRAM;
-		}
-#else
-		pram=0;
+#ifdef CONFIG_PRAM
+		pram = getenv_ulong("pram", 10, CONFIG_PRAM);
 #endif
 #ifdef CONFIG_LOGBUFFER
 #ifndef CONFIG_ALT_LB_ADDR

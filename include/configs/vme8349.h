@@ -266,7 +266,6 @@
 #endif
 
 #ifndef VME_CADDY2
-#define CONFIG_NET_MULTI
 #endif
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
@@ -294,9 +293,6 @@
 #endif
 
 #if defined(CONFIG_TSEC_ENET)
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI
-#endif
 
 #define CONFIG_GMII			/* MII PHY management */
 #define CONFIG_TSEC1
@@ -315,12 +311,6 @@
 #define CONFIG_ETHPRIME		"TSEC0"
 
 #endif	/* CONFIG_TSEC_ENET */
-
-#if defined(CONFIG_E1000)
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI
-#endif
-#endif
 
 /*
  * Environment
@@ -555,8 +545,8 @@
 #endif
 
 #define CONFIG_HOSTNAME		VME8349
-#define CONFIG_ROOTPATH		/tftpboot/rootfs
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/tftpboot/rootfs"
+#define CONFIG_BOOTFILE		"uImage"
 
 #define CONFIG_LOADADDR		800000	/* def location for tftp and bootm */
 

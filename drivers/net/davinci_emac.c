@@ -680,6 +680,9 @@ int davinci_emac_initialize(void)
 
 	davinci_eth_mdio_enable();
 
+	/* let the EMAC detect the PHYs */
+	udelay(5000);
+
 	for (i = 0; i < 256; i++) {
 		if (readl(&adap_mdio->ALIVE))
 			break;
@@ -711,6 +714,13 @@ int davinci_emac_initialize(void)
 	phy_id |= tmp & 0x0000ffff;
 
 	switch (phy_id) {
+	case PHY_KSZ8873:
+		sprintf(phy.name, "KSZ8873 @ 0x%02x", active_phy_addr);
+		phy.init = ksz8873_init_phy;
+		phy.is_phy_connected = ksz8873_is_phy_connected;
+		phy.get_link_speed = ksz8873_get_link_speed;
+		phy.auto_negotiate = ksz8873_auto_negotiate;
+		break;
 		case PHY_LXT972:
 			sprintf(phy.name, "LXT972 @ 0x%02x", active_phy_addr);
 			phy.init = lxt972_init_phy;
@@ -740,7 +750,7 @@ int davinci_emac_initialize(void)
 			phy.auto_negotiate = gen_auto_negotiate;
 	}
 
-	printf("Ethernet PHY: %s\n", phy.name);
+	debug("Ethernet PHY: %s\n", phy.name);
 
 	miiphy_register(phy.name, davinci_mii_phy_read, davinci_mii_phy_write);
 	return(1);

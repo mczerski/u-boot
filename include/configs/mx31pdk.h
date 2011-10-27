@@ -45,6 +45,8 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX31_3DS
+
 #if defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #endif
@@ -115,7 +117,6 @@
 		"nand erase 0x0 0x40000; "				\
 		"nand write 0x81000000 0x0 0x40000\0"
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_BASE	0xB6000000
 #define CONFIG_SMC911X_32_BIT
@@ -124,7 +125,7 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP	/* undef to save memory */
-#define CONFIG_SYS_PROMPT	"uboot> "
+#define CONFIG_SYS_PROMPT	"MX31PDK U-Boot > "
 #define CONFIG_SYS_CBSIZE	256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE + \

@@ -332,7 +332,6 @@
 #undef PCI_ONE_PCI1
 #endif
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
 #undef CONFIG_EEPRO100
@@ -355,9 +354,6 @@
 #define CONFIG_TSEC_ENET		/* TSEC ethernet support */
 
 #if defined(CONFIG_TSEC_ENET)
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
 
 #define CONFIG_TSEC1	1
 #define CONFIG_TSEC1_NAME	"TSEC0"
@@ -614,8 +610,8 @@
 #endif
 
 #define CONFIG_HOSTNAME		SBC8349
-#define CONFIG_ROOTPATH		/tftpboot/rootfs
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/tftpboot/rootfs"
+#define CONFIG_BOOTFILE		"uImage"
 
 #define CONFIG_LOADADDR		800000	/* default location for tftp and bootm */
 

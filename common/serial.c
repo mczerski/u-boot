@@ -108,6 +108,20 @@ void serial_initialize (void)
 #if defined(CONFIG_SYS_BFIN_UART)
 	serial_register_bfin_uart();
 #endif
+#if defined(CONFIG_XILINX_UARTLITE)
+# ifdef XILINX_UARTLITE_BASEADDR
+	serial_register(&uartlite_serial0_device);
+# endif /* XILINX_UARTLITE_BASEADDR */
+# ifdef XILINX_UARTLITE_BASEADDR1
+	serial_register(&uartlite_serial1_device);
+# endif /* XILINX_UARTLITE_BASEADDR1 */
+# ifdef XILINX_UARTLITE_BASEADDR2
+	serial_register(&uartlite_serial2_device);
+# endif /* XILINX_UARTLITE_BASEADDR2 */
+# ifdef XILINX_UARTLITE_BASEADDR3
+	serial_register(&uartlite_serial3_device);
+# endif /* XILINX_UARTLITE_BASEADDR3 */
+#endif /* CONFIG_XILINX_UARTLITE */
 	serial_assign (default_serial_console ()->name);
 }
 
@@ -158,73 +172,49 @@ void serial_reinit_all (void)
 	}
 }
 
-int serial_init (void)
+static struct serial_device *get_current(void)
 {
+	struct serial_device *dev;
+
 	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
-		struct serial_device *dev = default_serial_console ();
+		dev = default_serial_console();
 
-		return dev->init ();
-	}
+		/* We must have a console device */
+		if (!dev)
+			panic("Cannot find console");
+	} else
+		dev = serial_current;
+	return dev;
+}
 
-	return serial_current->init ();
+int serial_init(void)
+{
+	return get_current()->init();
 }
 
 void serial_setbrg (void)
 {
-	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
-		struct serial_device *dev = default_serial_console ();
-
-		dev->setbrg ();
-		return;
-	}
-
-	serial_current->setbrg ();
+	get_current()->setbrg();
 }
 
 int serial_getc (void)
 {
-	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
-		struct serial_device *dev = default_serial_console ();
-
-		return dev->getc ();
-	}
-
-	return serial_current->getc ();
+	return get_current()->getc();
 }
 
 int serial_tstc (void)
 {
-	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
-		struct serial_device *dev = default_serial_console ();
-
-		return dev->tstc ();
-	}
-
-	return serial_current->tstc ();
+	return get_current()->tstc();
 }
 
 void serial_putc (const char c)
 {
-	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
-		struct serial_device *dev = default_serial_console ();
-
-		dev->putc (c);
-		return;
-	}
-
-	serial_current->putc (c);
+	get_current()->putc(c);
 }
 
 void serial_puts (const char *s)
 {
-	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
-		struct serial_device *dev = default_serial_console ();
-
-		dev->puts (s);
-		return;
-	}
-
-	serial_current->puts (s);
+	get_current()->puts(s);
 }
 
 #if CONFIG_POST & CONFIG_SYS_POST_UART

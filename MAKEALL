@@ -400,7 +400,9 @@ LIST_mips="		\
 ## MIPS Systems		(little endian)
 #########################################################################
 
-LIST_mips4kc_el=""
+LIST_mips4kc_el="	\
+	qi_lb60		\
+"
 
 LIST_mips5kc_el=""
 
@@ -442,20 +444,15 @@ LIST_microblaze="$(boards_by_arch microblaze)"
 ## ColdFire Systems
 #########################################################################
 
-LIST_coldfire="$(boards_by_arch m68k)
-	astro_mcf5373l		\
-	cobra5272		\
+LIST_m68k="$(boards_by_arch m68k)
 	EB+MCF-EV123		\
 	EB+MCF-EV123_internal	\
 	M52277EVB		\
 	M5235EVB		\
-	M5329AFEE		\
-	M5373EVB		\
 	M54451EVB		\
 	M54455EVB		\
-	M5475AFE		\
-	M5485AFE		\
 "
+LIST_coldfire=${LIST_m68k}
 
 #########################################################################
 ## AVR32 Systems
@@ -484,6 +481,12 @@ LIST_sh="$(boards_by_arch sh)"
 #########################################################################
 
 LIST_sparc="$(boards_by_arch sparc)"
+
+#########################################################################
+## NDS32 Systems
+#########################################################################
+
+LIST_nds32="$(boards_by_arch nds32)"
 
 #-----------------------------------------------------------------------
 
