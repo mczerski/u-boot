@@ -43,4 +43,6 @@ typedef struct bd_info {
 	unsigned long	bi_flashoffset;	/* reserved area for startup monitor */
 } bd_t;
 
+#define IH_ARCH_DEFAULT IH_ARCH_OPENRISC
+
 #endif	/* _U_BOOT_H_ */
