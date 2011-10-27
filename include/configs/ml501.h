@@ -39,8 +39,25 @@
 
 #define CONFIG_BOARD_NAME "ml501" /* custom board name */
 
-#define CONFIG_SYS_NO_FLASH
-#define CONFIG_SYS_MAX_FLASH_SECT 0
+#define CONFIG_SYS_FLASH_BASE          0xF0000000
+#define CONFIG_SYS_FLASH_CFI                  /* Flash is CFI conformant    */
+#undef CONFIG_SYS_FLASH_CFI_DRIVER
+#define CONFIG_SYS_MAX_FLASH_BANKS     1       /* max number of memory banks */
+#define CONFIG_SYS_MAX_FLASH_SECT      280     /* max number of sectors on one
+                                                  chip */
+#define CONFIG_SYS_FLASH_ERASE_TOUT    120000  /* Flash Erase Timeout (in ms)*/
+#define CONFIG_SYS_FLASH_INCREMENT     0x01000000
+#define CONFIG_SYS_FLASH_USE_BUFFER_WRITE     /* use buffered writes (20x
+                                                  faster)*/
+#define CONFIG_SYS_FLASH_WRITE_TOUT    500     /* Flash Write Timeout (in ms)*/
+#define CONFIG_SYS_FLASH_CFI_WIDTH      FLASH_CFI_16BIT
+#define CONFIG_SYS_FLASH_PROTECTION     
+
+/* OpenRISC-specific boot settings */
+#define CONFIG_SYS_RELOCATE_VECTORS            /* Relocate the vectors code
+                                                  from flash to RAM at reset */
+#define CONFIG_SYS_VECTORS_LEN 0x2000
+
 
 /*
  * SERIAL
@@ -86,14 +103,18 @@
 				 CONFIG_SYS_SDRAM_SIZE - \
 				 CONFIG_SYS_MONITOR_LEN)
 
-#define CONFIG_ENV_IS_NOWHERE	1
-#define CONFIG_ENV_SIZE		0x20000 /* Total Size of Environment, 128KB */
-#define CONFIG_ENV_ADDR         (CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SIZE)
+#define CONFIG_ENV_IS_IN_FLASH 1
+#define CONFIG_ENV_OFFSET       0x80000 /* Flagrantly ignore the CONFIG_ENV_IS_IN_FLASH
+                                          instructions in the README - store it in the 
+					  open for now. */
+#define CONFIG_ENV_SECT_SIZE    (128*1024)
+#define CONFIG_ENV_ADDR         (CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET)
+#define CONFIG_ENV_SIZE         CONFIG_ENV_SECT_SIZE
 
 /*
  * Global data object and stack pointer
  */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_ENV_ADDR-1024/*GENERATED_GBL_DATA_SIZE*/)
+#define CONFIG_SYS_GBL_DATA_OFFSET   (CONFIG_SYS_MONITOR_BASE - 1024)
 #define CONFIG_SYS_GBL_DATA_ADDR     CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_ADDR      CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
@@ -116,7 +137,6 @@
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_INIT_SP_ADDR - 0x20000)
-#define CONFIG_CMDLINE_EDITING
 
 
 /*
@@ -127,16 +147,14 @@
 
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_ELF
-/*
-#define CONFIG_CMD_DATE
-#define CONFIG_CMD_I2C
-*/
 #define CONFIG_CMD_BSP
-
+#define CONFIG_CMDLINE_EDITING
 #define CONFIG_CMD_MII
-# define CONFIG_NET_MULTI
-# define CONFIG_CMD_DHCP
-# define CONFIG_CMD_PING
+#define CONFIG_NET_MULTI
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_SAVEENV
+#define CONFIG_CMD_FLASH
 
 
 /*

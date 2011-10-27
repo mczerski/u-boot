@@ -29,7 +29,7 @@ endif
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS-y	:= $(BOARD).o
+COBJS-y	:= $(BOARD).o strataflash.o
 
 SRCS	:= $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS-y))
