@@ -79,9 +79,20 @@
 #define CONFIG_LOADADDR		0x100000 /* 1MB mark */
 
 /*
+ * USB
+ */
+#define CONFIG_USB_OHS900_HCD
+#define CONFIG_USB_STORAGE
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_FAT
+#define CONFIG_SUPPORT_VFAT
+
+#define CONFIG_OHS900_HCD_BASE		0x9c000000
+
+/*
  * TIMER
  */
-#define CONFIG_SYS_HZ			100 
+#define CONFIG_SYS_HZ			100
 
 /*
  * NAND Flash
@@ -114,7 +125,7 @@
 
 /* We're running in RAM */
 #define CONFIG_MONITOR_IS_IN_RAM
-#define CONFIG_SYS_MONITOR_LEN	0x40000	/* Reserve 256k */
+#define CONFIG_SYS_MONITOR_LEN	0x100000	/* Reserve 1MB */
 #define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_SDRAM_BASE + \
 				 CONFIG_SYS_SDRAM_SIZE - \
 				 CONFIG_SYS_MONITOR_LEN)
@@ -179,6 +190,8 @@
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB
+
+#define CONFIG_CMD_USB
 
 /*
  * BOOTP options
