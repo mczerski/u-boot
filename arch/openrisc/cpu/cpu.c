@@ -8,12 +8,12 @@ int checkcpu(void)
 	return 0;
 }
 
-int cpu_init (void)
+int cpu_init(void)
 {
 	return 0;
 }
 
-int cleanup_before_linux (void)
+int cleanup_before_linux(void)
 {
 	disable_interrupts();
 	return 0;
@@ -21,7 +21,7 @@ int cleanup_before_linux (void)
 
 extern void __reset(void);
 
-int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	disable_interrupts();
 	__reset();
@@ -29,7 +29,7 @@ int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 
-void flush_cache (unsigned long addr, unsigned long size)
+void flush_cache(unsigned long addr, unsigned long size)
 {
 	unsigned long target = addr + size;
 	while(addr < target)
@@ -39,12 +39,12 @@ void flush_cache (unsigned long addr, unsigned long size)
 	}
 }
 
-void flush_dcache (unsigned long addr, unsigned long size)
+void flush_dcache(unsigned long addr, unsigned long size)
 {
 	flush_cache(addr,size);
 }
 
-void flush_icache (unsigned long addr, unsigned long size)
+void flush_icache(unsigned long addr, unsigned long size)
 {
 	unsigned long target = addr + size;
 	while(addr < target)
@@ -54,18 +54,17 @@ void flush_icache (unsigned long addr, unsigned long size)
 	}
 }
 
-int icache_status (void)
+int icache_status(void)
 {
 	return 0;
 }
 
-int dcache_status (void)
+int dcache_status(void)
 {
 	return 0;
 }
 
 int cpu_eth_init(bd_t *bis)
 {
-
 	return 0;
 }
