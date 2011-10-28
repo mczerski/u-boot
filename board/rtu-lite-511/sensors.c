@@ -171,31 +171,25 @@ void do_sensors()
 	}
 	spi_claim_bus(slave);
 	if (!tlv2548_init(slave)) {
-		printf("ERROR! Didn't detect any TLV2548 AD converter "
+		printf("ERROR! Didn't detect any Analog to Digital converter "
 		       "on SPI bus %d\n", slave->bus);
 		goto out;
 	}
-	printf("Texas Instrument TLV2548 AD converter "
-	       "detected and initiated\n");
-
-	for (i = 0;i < ADC_CHANNELS; i++)
-		printf("-> Channel %d\t Raw: %d\n", i, tlv2548_read(slave, i));
-
 	raw_data = tlv2548_read(slave, ADC_TEMP);
-	printf("Board temperature (Channel %d)\t Raw %d  \t%d (C)\n",
-	       ADC_TEMP, raw_data, (int) calc_board_temp(raw_data));
+	printf("Device temperature \t \t%d (deg C)\n", (int) calc_board_temp(raw_data));
+
 	raw_data = tlv2548_read(slave, ADC_ICC);
 	icc = (int) calc_board_icc(raw_data);
-	printf("Board current (Channel %d)\t Raw %d  \t%d (mA)\n",
-	       ADC_ICC, raw_data, icc);
+	printf("Device current \t \t \t%d (mA)\n",icc);
+
 	raw_data = tlv2548_read(slave, ADC_VCC);
 	vcc = (int) (calc_board_vcc(raw_data) * 1000);
-	printf("Vcc (5V) status (Channel %d)\t Raw %d  \t%d (mV)\n",
-	       ADC_VCC, raw_data, vcc);
+	printf("Device 5 V level \t \t%d (mV)\n", vcc);
+
 	raw_data = tlv2548_read(slave, ADC_V33);
-	printf("3.3 V status (Channel %d)\t Raw %d  \t%d (mV)\n",
-	       ADC_V33, raw_data, (int) (calc_board_v33(raw_data) * 1000));
-	printf("Power consumption\t\t\t\t%01d.%02d (W)\n",
+	printf("Device 3.3 V level \t \t%d (mV)\n",(int) (calc_board_v33(raw_data) * 1000));
+
+	printf("Device power consumption\t%01d.%02d (W)\n",
 	       (vcc*icc)/1000000, (vcc*icc)%1000000);
 
 out:
