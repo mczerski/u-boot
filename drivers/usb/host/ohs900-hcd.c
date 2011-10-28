@@ -96,7 +96,7 @@ static int ohs900_reset(void)
 /*
  * runs a 50 ms bus reset by taking direct control over the D-/D+ lines
  */
-void ohs900_bus_reset()
+void ohs900_bus_reset(void)
 {
 	debug("Bus reset\n");
 	writeb(0, &ohs900->sofenreg);
@@ -121,7 +121,7 @@ static inline void ohs900_read_rxfifo(u8 *buffer, int len)
 		*buffer++ = readb(&ohs900->host_rxfifo_data);
 }
 
-static inline void ohs900_wait_transreq()
+static inline void ohs900_wait_transreq(void)
 {
 	while (readb(&ohs900->host_tx_ctlreg) & OHS900_HCTLMASK_TRANS_REQ)
 		udelay(1);
