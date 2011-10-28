@@ -1,19 +1,19 @@
 /*
-	exception_handler.S. OR1K exception handling function.
-
-	Contributor Julius Baxter  <julius@opencores.org>
-
-*/
+ *	exception_handler.S. OR1K exception handling function.
+ *
+ *	Contributor Julius Baxter  <julius@opencores.org>
+ *
+ */
 
 
 #include <asm/spr-defs.h>
 
-// Warning - this must be the same as specified in start.S	
+/* Warning - this must be the same as specified in start.S */
 #define EXCEPTION_STACK_SIZE (128+128)
 
-// Value handler addresses are initialised to
+/* Value handler addresses are initialised to */
 #define EXCEPTION_HANDLER_NOT_SET -1
-	
+
 	.data
 	.align 4
 	.global _exception_handler_table
@@ -47,54 +47,52 @@ _exception_handler_reserved12:	.long	EXCEPTION_HANDLER_NOT_SET
 _exception_handler_reserved13:	.long	EXCEPTION_HANDLER_NOT_SET
 _exception_handler_reserved14:	.long	EXCEPTION_HANDLER_NOT_SET
 _exception_handler_reserved15:	.long	EXCEPTION_HANDLER_NOT_SET
-	
-/* -------------------------------------------------------------------------- */
-/*!Function to call appropriate exception handler            
-                                                                              */
-/* -------------------------------------------------------------------------- */
-	
+
+/*
+ * Function to call appropriate exception handler
+ */
 	.section .text
 	.global	_exception_handler
 	.extern	exception_hang
         .type	_exception_handler,@function
 
 	/*
-	r3 = address of exception vector
-	r4 = address where exception occurred
-	*/
+	 * r3 = address of exception vector
+	 * r4 = address where exception occurred
+	 */
 
 _exception_handler:
 	/* Store remainder of state (r3,r4 stored in vector entry)*/
-	l.sw    0x00(r1), r2
-	l.sw    0x0c(r1), r5
-	l.sw    0x10(r1), r6
-	l.sw    0x14(r1), r7
-	l.sw    0x18(r1), r8
-	l.sw    0x1c(r1), r9
-	l.sw    0x20(r1), r10
-	l.sw    0x24(r1), r11
-	l.sw    0x28(r1), r12
-	l.sw    0x2c(r1), r13
-	l.sw    0x30(r1), r14
-	l.sw    0x34(r1), r15
-#ifndef __OR32_16GPRS__	
-	l.sw    0x38(r1), r16
-	l.sw    0x3c(r1), r17
-	l.sw    0x40(r1), r18
-	l.sw    0x44(r1), r19
-	l.sw    0x48(r1), r20
-	l.sw    0x4c(r1), r21
-	l.sw    0x50(r1), r22
-	l.sw    0x54(r1), r23
-	l.sw    0x58(r1), r24
-	l.sw    0x5c(r1), r25
-	l.sw    0x60(r1), r26
-	l.sw    0x64(r1), r27
-	l.sw    0x68(r1), r28
-	l.sw    0x6c(r1), r29
-	l.sw    0x70(r1), r30
-	l.sw    0x74(r1), r31
-#endif	
+	l.sw	0x00(r1), r2
+	l.sw	0x0c(r1), r5
+	l.sw	0x10(r1), r6
+	l.sw	0x14(r1), r7
+	l.sw	0x18(r1), r8
+	l.sw	0x1c(r1), r9
+	l.sw	0x20(r1), r10
+	l.sw	0x24(r1), r11
+	l.sw	0x28(r1), r12
+	l.sw	0x2c(r1), r13
+	l.sw	0x30(r1), r14
+	l.sw	0x34(r1), r15
+#ifndef __OR32_16GPRS__
+	l.sw	0x38(r1), r16
+	l.sw	0x3c(r1), r17
+	l.sw	0x40(r1), r18
+	l.sw	0x44(r1), r19
+	l.sw	0x48(r1), r20
+	l.sw	0x4c(r1), r21
+	l.sw	0x50(r1), r22
+	l.sw	0x54(r1), r23
+	l.sw	0x58(r1), r24
+	l.sw	0x5c(r1), r25
+	l.sw	0x60(r1), r26
+	l.sw	0x64(r1), r27
+	l.sw	0x68(r1), r28
+	l.sw	0x6c(r1), r29
+	l.sw	0x70(r1), r30
+	l.sw	0x74(r1), r31
+#endif
 	/* Determine offset in table of exception handler using r3*/
 	l.andi	r13,r3,0xffff
 	l.srli	r13,r13,6
@@ -114,7 +112,7 @@ _exception_handler:
 	l.sfne	r13,r15
 	l.bnf	.L1
 	l.nop
-	
+
 	/* Call exception handler, copy EPCR to r3 */
 	l.jalr	r13
 	l.or	r3,r4,r4
@@ -134,7 +132,7 @@ _exception_handler:
 	l.lwz    r13, 0x2c(r1)
 	l.lwz    r14, 0x30(r1)
 	l.lwz    r15, 0x34(r1)
-#ifndef __OR32_16GPRS__	
+#ifndef __OR32_16GPRS__
 	l.lwz    r16, 0x38(r1)
 	l.lwz    r17, 0x3c(r1)
 	l.lwz    r18, 0x40(r1)
@@ -162,11 +160,9 @@ _exception_handler:
 	l.jal	exception_hang
 	l.nop	0x0
 
-	
-/* -------------------------------------------------------------------------- */
-/*!Function to add handler to table
-                                                                              */
-/* -------------------------------------------------------------------------- */
+/*
+ * Function to add handler to table
+ */
 	.global	_exception_handler_add
         .type	_exception_handler_add,@function
 
@@ -191,4 +187,3 @@ _exception_handler_add:
 	l.jr	r9
 	/* Restore stack value */
 	l.addi	r1,r1,4
-	
