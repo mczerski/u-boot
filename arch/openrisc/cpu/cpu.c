@@ -19,7 +19,7 @@ int cleanup_before_linux (void)
 	return 0;
 }
 
-extern void __reset();
+extern void __reset(void);
 
 int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
