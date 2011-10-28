@@ -1,28 +1,26 @@
 /*
-	interrupts.S. OpenRISC interrupt functions
-
-	Contributor Julius Baxter  <julius@opencores.org>
-*/
+ *	interrupts.S. OpenRISC interrupt functions
+ *
+ *	Contributor Julius Baxter  <julius@opencores.org>
+ */
 
 /*
-
-	This function is to be called from the exception handler ONLY! It
-	relies on the ability to trash all registers due to them having been
-	saved on entry to the interrupt exception.
-
-	This function should  be installed in the exception handler's
-	user interrupt exception function slot at reset.
-	
-*/
+ *	This function is to be called from the exception handler ONLY! It
+ *	relies on the ability to trash all registers due to them having been
+ *	saved on entry to the interrupt exception.
+ *
+ *	This function should  be installed in the exception handler's
+ *	user interrupt exception function slot at reset.
+ */
 
 #include <asm/spr-defs.h>
 
 #define INTERRUPT_HANDLER_NOT_SET -1
-	
+
 	.data
 	.align 4
 	.global _interrupt_handler_table
-_interrupt_handler_table:	
+_interrupt_handler_table:
 _interrupt_handler0:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler1:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler2:	.long	INTERRUPT_HANDLER_NOT_SET
@@ -54,10 +52,10 @@ _interrupt_handler27:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler28:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler29:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler30:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler31:	.long	INTERRUPT_HANDLER_NOT_SET	
+_interrupt_handler31:	.long	INTERRUPT_HANDLER_NOT_SET
 
 	.global _interrupt_handler_data_ptr_table
-_interrupt_handler_data_ptr_table:	
+_interrupt_handler_data_ptr_table:
 _interrupt_handler_data_ptr0:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler_data_ptr1:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler_data_ptr2:	.long	INTERRUPT_HANDLER_NOT_SET
@@ -89,15 +87,14 @@ _interrupt_handler_data_ptr27:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler_data_ptr28:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler_data_ptr29:	.long	INTERRUPT_HANDLER_NOT_SET
 _interrupt_handler_data_ptr30:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr31:	.long	INTERRUPT_HANDLER_NOT_SET	
-	
+_interrupt_handler_data_ptr31:	.long	INTERRUPT_HANDLER_NOT_SET
 
 
-/* -------------------------------------------------------------------------- */
-/*!Function to call appropriate interrupt handler            
-                                                                              */
-/* -------------------------------------------------------------------------- */
-	
+
+/*
+ * Function to call appropriate interrupt handler
+ */
+
 	.section .text
 	.global	_interrupt_handler
         .type	_interrupt_handler,@function
@@ -106,7 +103,7 @@ _interrupt_handler:
 	/* Make room on stack, save link register */
 	l.addi	r1,r1,-12
 	l.sw	0(r1),r9
-	
+
 	/* Read PICSR */
 	l.mfspr	r3,r0,SPR_PICSR
 
@@ -119,7 +116,7 @@ _interrupt_handler:
 	/* Load data pointer table base address */
 	l.movhi r12,hi(_interrupt_handler_data_ptr_table)
 	l.ori	r12,r12,lo(_interrupt_handler_data_ptr_table)
-	
+
 .L0:
 	/* Find first set bit in PICSR */
 	l.ff1	r4,r3
@@ -127,7 +124,7 @@ _interrupt_handler:
 	l.sfne	r4,r0
 	/* If none, finish */
 	l.bnf	.L2
-	l.nop 
+	l.nop
 	/* What is IRQ function table offset? */
 	l.addi	r5,r4,-1
 	l.slli	r6,r5,2
@@ -143,7 +140,7 @@ _interrupt_handler:
 	/* Skip if no handler: TODO: Indicate interrupt fired but no handler*/
 	l.bnf .L1
 	l.nop
-	
+
 	/* Pull out data pointer from table, save r3, we'll write over it */
 	l.sw	4(r1),r3
 	l.lwz	r3,0(r13)
@@ -169,11 +166,10 @@ _interrupt_handler:
 	l.addi	r1,r1,12
 
 
-	
-/* -------------------------------------------------------------------------- */
-/*!Function to add handler to table
-                                                                              */
-/* -------------------------------------------------------------------------- */
+
+/*
+ * Function to add handler to table
+ */
 	.global	irq_install_handler
         .type	irq_install_handler,@function
 
@@ -207,7 +203,6 @@ irq_install_handler:
 	/* Restore stack value */
 	l.addi	r1,r1,4
 
-/* -------------------------------------------------------------------------- */
 	.global	irq_free_handler
         .type	irq_free_handler,@function
 
@@ -236,4 +231,3 @@ irq_free_handler:
 	l.jr	r9
 	/* Restore stack value */
 	l.addi	r1,r1,8
-
