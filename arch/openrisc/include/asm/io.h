@@ -33,8 +33,6 @@ extern inline void * ioremap_nocache(unsigned long offset, unsigned long size)
 
 extern void iounmap(void *addr);
 
-//#define page_to_phys(page)	((page - mem_map) << PAGE_SHIFT)
-
 /*
  * IO bus memory addresses are also 1:1 with the physical address
  */
@@ -93,13 +91,6 @@ extern void iounmap(void *addr);
  */
 #define xlate_dev_kmem_ptr(p)	p
 
-
-/* Create a virtual mapping cookie for an IO port range */
-/*
-I think not needed - Julius
-extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
-extern void ioport_unmap(void __iomem *);
-*/
 #define ioread8(addr)           readb(addr)
 #define ioread16(addr)          readw(addr)
 #define ioread32(addr)          readl(addr)
