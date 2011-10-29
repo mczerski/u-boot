@@ -1,6 +1,6 @@
 /*
+ * (C) Copyright 2011, Stefan Kristiansson, stefan.kristiansson@saunalahti.fi
  * (C) Copyright 2011, Julius Baxter, julius@opencores.org
- * (C) Copyright 2011, Stefan Kristiansson, stefan.kristianssons@saunalahti.fi
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -51,18 +51,17 @@
 /*
  * SERIAL
  */
-# define CONFIG_SYS_NS16550		1
+# define CONFIG_SYS_NS16550
 # define CONFIG_SYS_NS16550_SERIAL
 # define CONFIG_SYS_NS16550_REG_SIZE	1
 # define CONFIG_CONS_INDEX		1
-# define CONFIG_SYS_NS16550_COM1 \
-			(0x90000000)
-# define CONFIG_SYS_NS16550_CLK	CONFIG_SYS_CLK_FREQ
+# define CONFIG_SYS_NS16550_COM1 	(0x90000000)
+# define CONFIG_SYS_NS16550_CLK		CONFIG_SYS_CLK_FREQ
 
-#define CONFIG_BAUDRATE		CONFIG_SYS_UART_BAUD
+#define CONFIG_BAUDRATE			CONFIG_SYS_UART_BAUD
 #define CONFIG_SYS_BAUDRATE_TABLE	{CONFIG_BAUDRATE}
 #define CONFIG_SYS_CONSOLE_INFO_QUIET	/* Suppress console info */
-#define CONSOLE_ARG	"console=console=ttyS0,115200\0"
+#define CONSOLE_ARG			"console=console=ttyS0,115200\0"
 
 /*
  * Ethernet
@@ -98,8 +97,8 @@
  * NAND Flash
  */
 #define CONFIG_NAND_AAC
-#define CONFIG_SYS_MAX_NAND_DEVICE 1
-#define CONFIG_SYS_NAND_BASE       0x95000000
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		0x95000000
 
 /*
  * SPI
@@ -120,8 +119,8 @@
 /*
  * GPIO
  */
-#define CONFIG_SYS_GPIO_BASE 0x9a000000
-#define CONFIG_SYS_GPIO_WIDTH 56
+#define CONFIG_SYS_GPIO_BASE		0x9a000000
+#define CONFIG_SYS_GPIO_WIDTH		56
 
 /* We're running in RAM */
 #define CONFIG_MONITOR_IS_IN_RAM
@@ -131,22 +130,22 @@
 				 CONFIG_SYS_MONITOR_LEN)
 
 #define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET       0x100000
+#define CONFIG_ENV_OFFSET	0x100000
 #define CONFIG_ENV_SIZE		0x20000 /* Total Size of Environment, 128KB */
-#define CONFIG_ENV_ADDR         (CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SIZE)
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SIZE)
 
 /*
  * Global data object and stack pointer
  */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_ENV_ADDR-1024/*GENERATED_GBL_DATA_SIZE*/)
-#define CONFIG_SYS_GBL_DATA_ADDR     CONFIG_SYS_GBL_DATA_OFFSET
-#define CONFIG_SYS_INIT_SP_ADDR      CONFIG_SYS_GBL_DATA_OFFSET
-#define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
-#define CONFIG_SYS_STACK_LENGTH        0x10000 /* 64KB */
-#define CONFIG_SYS_MALLOC_LEN          0x400000 /* 4MB */
-#define CONFIG_SYS_MALLOC_BASE         (CONFIG_SYS_INIT_SP_OFFSET \
-	                                - CONFIG_SYS_STACK_LENGTH \
-	                                - CONFIG_SYS_MALLOC_LEN)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_ENV_ADDR-1024/*GENERATED_GBL_DATA_SIZE*/)
+#define CONFIG_SYS_GBL_DATA_ADDR	CONFIG_SYS_GBL_DATA_OFFSET
+#define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_GBL_DATA_OFFSET
+#define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
+#define CONFIG_SYS_STACK_LENGTH		0x10000 /* 64KB */
+#define CONFIG_SYS_MALLOC_LEN		0x400000 /* 4MB */
+#define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_INIT_SP_OFFSET \
+					- CONFIG_SYS_STACK_LENGTH \
+					- CONFIG_SYS_MALLOC_LEN)
 /*
  * MISC
  */
@@ -163,8 +162,8 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_INIT_SP_ADDR - 0x20000)
 #define CONFIG_CMDLINE_EDITING
 
-#define CONFIG_BOOTDELAY                5
-#define CONFIG_BOOTCOMMAND              "nboot 0x100000 0 0x200000; bootm"
+#define CONFIG_BOOTDELAY		5
+#define CONFIG_BOOTCOMMAND		"nboot 0x100000 0 0x200000; bootm"
 
 /*
  * Command line configuration.
@@ -174,10 +173,8 @@
 
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_ELF
-/*
-#define CONFIG_CMD_DATE
-#define CONFIG_CMD_I2C
-*/
+#define CONFIG_CMD_CACHE
+
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_BSP
 
