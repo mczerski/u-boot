@@ -12,8 +12,6 @@ static inline unsigned long mfspr(unsigned long add)
         return ret;
 }
 
-#define mtspr_off(_spr, _off, _val) __asm__ __volatile__ ("l.mtspr %0,%1,%2" :: "r" (_off), "r" (_val), "K" (_spr))
-
 static inline void mtspr(unsigned long add, unsigned long val)
 {
 	__asm__ __volatile__ ("l.mtspr r0,%1,%0" :: "K" (add), "r" (val));
