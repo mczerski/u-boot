@@ -91,7 +91,7 @@
 /*
  * TIMER
  */
-#define CONFIG_SYS_HZ			100
+#define CONFIG_SYS_HZ			1000
 
 /*
  * NAND Flash
