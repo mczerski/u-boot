@@ -26,8 +26,10 @@
 
 int checkcpu(void)
 {
-	puts("CPU: OpenRISC\n");
-	// TODO - all the info here
+	puts("CPU:    OpenRISC\n");
+	printf("DCACHE: %d bytes\n", checkdcache());
+	printf("ICACHE: %d bytes\n", checkicache());
+	/* TODO - add more info here */
 	return 0;
 }
 
