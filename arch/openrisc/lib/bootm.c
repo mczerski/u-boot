@@ -38,9 +38,7 @@ DECLARE_GLOBAL_DATA_PTR;
 int do_bootm_linux(int flag, int argc, char * const argv[],
 			bootm_headers_t *images)
 {
-	/* First parameter is mapped to $r3 for kernel boot args */
 	void	(*kernel) (unsigned int);
-	char	*commandline = getenv ("bootargs");
 	ulong	rd_data_start, rd_data_end;
 
 	if ((flag != 0) && (flag != BOOTM_STATE_OS_GO))
