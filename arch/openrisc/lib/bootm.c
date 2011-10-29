@@ -70,10 +70,11 @@ int do_bootm_linux(int flag, int argc, char * const argv[],
 				"ramdisk 0x%08lx, FDT 0x%08lx...\n",
 		(ulong) kernel, rd_data_start, (ulong) of_flat_tree);
 #endif
+	if (dcache_status())
+		flush_dcache((ulong)kernel, checkdcache());
+	if (icache_status())
+		flush_icache((ulong)kernel, checkicache());
 
-/*
-TODO: Cache flushes here
-*/
 	/*
 	 * Linux Kernel Parameters (passing device tree):
 	 * r3: pointer to the fdt, followed by the board info data
