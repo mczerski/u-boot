@@ -56,12 +56,12 @@ void flush_icache(unsigned long addr, unsigned long size)
 
 int icache_status(void)
 {
-	return 0;
+	return (mfspr(SPR_SR) & SPR_SR_ICE);
 }
 
 int dcache_status(void)
 {
-	return 0;
+	return (mfspr(SPR_SR) & SPR_SR_DCE);
 }
 
 int cpu_eth_init(bd_t *bis)
