@@ -46,7 +46,6 @@
 
 const char version_string[] = U_BOOT_VERSION" ("U_BOOT_DATE" - "U_BOOT_TIME")";
 
-
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
@@ -62,20 +61,15 @@ DECLARE_GLOBAL_DATA_PTR;
  * "continue" and != 0 means "fatal error, hang the system".
  */
 
-
 extern int timer_init(void);
-
 
 typedef int (init_fnc_t) (void);
 
-
-/************************************************************************
- * Initialization sequence						*
- ***********************************************************************/
+/*
+ * Initialization sequence
+ */
 
 init_fnc_t *init_sequence[] = {
-
-
 	timer_init,		/* initialize timer */
 	env_init,
 	serial_init,
@@ -95,7 +89,7 @@ void board_init (void)
 
 	gd = (gd_t *)CONFIG_SYS_GBL_DATA_ADDR;
 
-	memset( gd, 0, GENERATED_GBL_DATA_SIZE );
+	memset(gd, 0, GENERATED_GBL_DATA_SIZE);
 
 	gd->bd = (bd_t *)(gd+1);	/* At end of global data */
 	gd->baudrate = CONFIG_BAUDRATE;
@@ -116,59 +110,56 @@ void board_init (void)
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		WATCHDOG_RESET ();
 		if ((*init_fnc_ptr) () != 0) {
-			hang ();
+			hang();
 		}
 	}
 
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 
 	/* The Malloc area is immediately below the monitor copy in RAM */
 	mem_malloc_init(CONFIG_SYS_MALLOC_BASE, CONFIG_SYS_MALLOC_LEN);
 
 #ifndef CONFIG_SYS_NO_FLASH
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 	bd->bi_flashsize = flash_init();
 #endif
 
 #ifdef CONFIG_CMD_NAND
-	puts("NAND:  ");
+	puts("NAND:   ");
 	nand_init();
 #endif
 
 #ifdef CONFIG_GENERIC_MMC
-	puts("MMC:   ");
+	puts("MMC:    ");
 	mmc_initialize(bd);
 #endif
 
-	WATCHDOG_RESET ();
-	//set_default_env(NULL);
+	WATCHDOG_RESET();
 	env_relocate();
 
-	//bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
-
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 	stdio_init();
 	jumptable_init();
 	console_init_r();
 
-	WATCHDOG_RESET ();
-	interrupt_init ();
+	WATCHDOG_RESET();
+	interrupt_init();
 
 #if defined(CONFIG_BOARD_LATE_INIT)
-	board_late_init ();
+	board_late_init();
 #endif
 
 #if defined(CONFIG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
-	puts ("Net:   ");
+	puts("NET:    ");
 #endif
-	eth_initialize (bd);
+	eth_initialize(bd);
 #endif
 
 	/* main_loop */
 	for (;;) {
-		WATCHDOG_RESET ();
-		main_loop ();
+		WATCHDOG_RESET();
+		main_loop();
 	}
 }
 
@@ -177,8 +168,8 @@ void board_init (void)
 
 void hang (void)
 {
-	disable_interrupts ();
+	disable_interrupts();
 	puts("### ERROR ### Please reset board ###\n");
-	asm("l.nop 0x1"); // Kill any simulation
+	asm("l.nop 0x1"); /* Kill any simulation */
 	for (;;);
 }
