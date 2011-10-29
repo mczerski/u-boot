@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011, Stefan Kristiansson  <stefan.kristiansson@saunalahti.fi>
+ * (C) Copyright 2011, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
  * (C) Copyright 2011, Julius Baxter <julius@opencores.org>
  *
  * See file CREDITS for list of people who contributed to this
