@@ -22,7 +22,7 @@
  * MA 02111-1307 USA
  */
 
-#ifndef	__ASM_GBL_DATA_H
+#ifndef __ASM_GBL_DATA_H
 #define __ASM_GBL_DATA_H
 /*
  * The following data structure is placed in some memory wich is
@@ -34,7 +34,7 @@
  * Keep it *SMALL* and remember to set GENERATED_GBL_DATA_SIZE > sizeof(gd_t)
  */
 
-typedef	struct	global_data {
+typedef struct global_data {
 	bd_t		*bd;
 	unsigned long	flags;
 	unsigned long	baudrate;
@@ -60,7 +60,7 @@ typedef	struct	global_data {
 #define GD_FLG_DISABLE_CONSOLE	0x00040	/* Disable console (in & out)		*/
 #define GD_FLG_ENV_READY	0x00080	/* Environment imported into hash table	*/
 
-// OR32 GCC already has r10 set as fixed-use
+/* OR32 GCC already has r10 set as fixed-use */
 #define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r10")
 
 #endif /* __ASM_GBL_DATA_H */
