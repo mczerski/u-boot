@@ -35,7 +35,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *images)
+int do_bootm_linux(int flag, int argc, char * const argv[],
+			bootm_headers_t *images)
 {
 	/* First parameter is mapped to $r3 for kernel boot args */
 	void	(*kernel) (unsigned int);
@@ -57,7 +58,7 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 	kernel = (void (*)(unsigned int))images->ep;
 
 	/* find ramdisk */
-	ret = boot_get_ramdisk (argc, argv, images, IH_ARCH_OPENRISC,
+	ret = boot_get_ramdisk(argc, argv, images, IH_ARCH_OPENRISC,
 			&rd_data_start, &rd_data_end);
 	if (ret)
 		return 1;
@@ -79,7 +80,7 @@ TODO: Cache flushes here
 	 * Linux Kernel Parameters (passing device tree):
 	 * r3: pointer to the fdt, followed by the board info data
 	 */
-	kernel ((unsigned int) of_flat_tree);
+	kernel((unsigned int) of_flat_tree);
 	/* does not return */
 
 	return 1;
