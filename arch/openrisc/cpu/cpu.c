@@ -51,30 +51,50 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-
-void flush_cache(unsigned long addr, unsigned long size)
+void flush_dcache(unsigned long addr, unsigned long size)
 {
 	unsigned long target = addr + size;
-	while(addr < target)
+
+	while (addr < target)
 	{
-		mtspr(SPR_DCBIR,addr);
+		mtspr(SPR_DCBFR, addr);
 		addr +=4;
 	}
 }
 
-void flush_dcache(unsigned long addr, unsigned long size)
+void flush_dcache_range(unsigned long addr, unsigned long stop)
 {
-	flush_cache(addr,size);
+	while (addr < stop)
+	{
+		mtspr(SPR_DCBFR, addr);
+		addr +=4;
+	}
+}
+
+void invalidate_dcache_range(unsigned long addr, unsigned long stop)
+{
+	while (addr < stop)
+	{
+		mtspr(SPR_DCBIR, addr);
+		addr +=4;
+	}
 }
 
 void flush_icache(unsigned long addr, unsigned long size)
 {
 	unsigned long target = addr + size;
-	while(addr < target)
+
+	while (addr < target)
 	{
-		mtspr(SPR_ICBIR,addr);
+		mtspr(SPR_ICBIR, addr);
 		addr +=4;
 	}
+}
+
+void flush_cache(unsigned long addr, unsigned long size)
+{
+	flush_dcache(addr, size);
+	flush_icache(addr, size);
 }
 
 int icache_status(void)
