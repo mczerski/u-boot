@@ -82,9 +82,39 @@ int icache_status(void)
 	return (mfspr(SPR_SR) & SPR_SR_ICE);
 }
 
+int checkicache(void)
+{
+	unsigned long iccfgr;
+	unsigned long cache_set_size;
+	unsigned long cache_ways;
+	unsigned long cache_block_size;
+
+	iccfgr = mfspr(SPR_ICCFGR);
+	cache_ways = 1 << (iccfgr & SPR_ICCFGR_NCW);
+	cache_set_size = 1 << ((iccfgr & SPR_ICCFGR_NCS) >> 3);
+	cache_block_size = 16 << ((iccfgr & SPR_ICCFGR_CBS) >> 7);
+
+	return (cache_set_size * cache_ways * cache_block_size);
+}
+
 int dcache_status(void)
 {
 	return (mfspr(SPR_SR) & SPR_SR_DCE);
+}
+
+int checkdcache(void)
+{
+	unsigned long dccfgr;
+	unsigned long cache_set_size;
+	unsigned long cache_ways;
+	unsigned long cache_block_size;
+
+	dccfgr = mfspr(SPR_DCCFGR);
+	cache_ways = 1 << (dccfgr & SPR_DCCFGR_NCW);
+	cache_set_size = 1 << ((dccfgr & SPR_DCCFGR_NCS) >> 3);
+	cache_block_size = 16 << ((dccfgr & SPR_DCCFGR_CBS) >> 7);
+
+	return cache_set_size * cache_ways * cache_block_size;
 }
 
 int cpu_eth_init(bd_t *bis)
