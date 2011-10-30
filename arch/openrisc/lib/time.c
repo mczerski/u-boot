@@ -26,7 +26,7 @@
 #include <asm/system.h>
 #include <common.h>
 
-static unsigned long timestamp;
+static ulong timestamp;
 
 /* how many counter cycles in a jiffy */
 #define TIMER_COUNTER_CYCLES  (CONFIG_SYS_CLK_FREQ/CONFIG_SYS_HZ)
@@ -41,7 +41,7 @@ void timer_isr(void)
 {
 	timestamp += TIMER_TIMESTAMP_INC;
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT |
-	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
+		(TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 }
 
 int timer_init(void)
@@ -53,10 +53,10 @@ int timer_init(void)
 	timestamp = 0;
 
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT |
-	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
+		(TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 
 	/* Enable tick timer exception in supervisor register */
-	mtspr (SPR_SR, mfspr (SPR_SR) | SPR_SR_TEE);
+	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_TEE);
 
 	return 0;
 }
@@ -66,7 +66,7 @@ void reset_timer(void)
 	timestamp = 0;
 
 	mtspr(SPR_TTMR, SPR_TTMR_IE | SPR_TTMR_RT |
-	      (TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
+		(TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 }
 
 ulong get_timer(ulong base)
