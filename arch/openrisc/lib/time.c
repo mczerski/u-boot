@@ -1,4 +1,6 @@
 /*
+ * (C) Copyright 2011, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+ * (C) Copyright 2011, Julius Baxter <julius@opencores.org>
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
