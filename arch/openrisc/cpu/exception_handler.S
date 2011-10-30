@@ -25,55 +25,24 @@
 /* Warning - this must be the same as specified in start.S */
 #define EXCEPTION_STACK_SIZE (128+128)
 
-/* Value handler addresses are initialised to */
-#define EXCEPTION_HANDLER_NOT_SET -1
-
 	.data
 	.align 4
+
 	.global _exception_handler_table
 _exception_handler_table:
-_exception_handler_buserr:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_dpfault:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_ipfault:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_tick:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_align:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_illegal:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_interrupt:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_dtlbmiss:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_itlbmiss:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_range:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_systemcall:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_float:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_trap:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved0:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved1:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved2:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved3:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved4:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved5:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved6:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved7:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved8:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved9:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved10:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved11:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved12:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved13:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved14:	.long	EXCEPTION_HANDLER_NOT_SET
-_exception_handler_reserved15:	.long	EXCEPTION_HANDLER_NOT_SET
+	.rept 32
+	.long 0
+	.endr
 
 /*
  * Function to call appropriate exception handler
+ * r3 = address of exception vector
+ * r4 = address where exception occurred
  */
 	.section .text
 	.global	_exception_handler
 	.extern	exception_hang
         .type	_exception_handler,@function
-
-	/*
-	 * r3 = address of exception vector
-	 * r4 = address where exception occurred
-	 */
 
 _exception_handler:
 	/* Store remainder of state (r3,r4 stored in vector entry)*/
@@ -110,8 +79,6 @@ _exception_handler:
 	/* Determine offset in table of exception handler using r3*/
 	l.andi	r13,r3,0xffff
 	l.srli	r13,r13,6
-	/* Substract 2 words, as we have no vector at 0 and no reset handler */
-	l.addi	r13,r13,-8
 	/* r13 now contains offset in _exception_handler_table for function */
 	/* Get _exception_handler_table address */
 	l.movhi r14,hi(_exception_handler_table)
@@ -121,9 +88,7 @@ _exception_handler:
 	l.lwz	r13, 0(r14)
 
 	/* Check to see if this handler has been set yet */
-	l.movhi r15,hi(EXCEPTION_HANDLER_NOT_SET)
-	l.ori 	r15,r15,lo(EXCEPTION_HANDLER_NOT_SET)
-	l.sfne	r13,r15
+	l.sfnei	r13,0x0
 	l.bnf	.L1
 	l.nop
 
@@ -173,31 +138,3 @@ _exception_handler:
 	/* Exception handler not set, loop */
 	l.jal	exception_hang
 	l.nop	0x0
-
-/*
- * Function to add handler to table
- */
-	.global	_exception_handler_add
-        .type	_exception_handler_add,@function
-
-	/* r3 should have exception number (2 for buserr, 5 for tick, etc.) */
-	/* r4 should have handler function address */
-_exception_handler_add:
-	l.addi 	r1,r1,-4
-	l.sw	0(r1),r5
-	/* Convert exception number into word address */
-	l.slli	r3,r3,2
-	l.addi	r3,r3,-8
-	/* Get address of exception handler table */
-	l.movhi r5,hi(_exception_handler_table)
-	l.ori	r5,r5,lo(_exception_handler_table)
-	/* Add handler offset to table base */
-	l.add	r5,r5,r3
-	/* Store handler function address */
-	l.sw 	0(r5),r4
-	/* Restore r5 */
-	l.lwz	r5,0(r1)
-	/* Return via link register */
-	l.jr	r9
-	/* Restore stack value */
-	l.addi	r1,r1,4

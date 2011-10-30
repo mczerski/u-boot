@@ -22,11 +22,25 @@
 #include <stdio_dev.h>
 
 extern void hang(void);
+extern unsigned long _exception_handler_table;
+
+void exception_install_handler(int exception, interrupt_handler_t *handler)
+{
+	ulong *handler_table = &_exception_handler_table;
+
+	if (exception < 0 || exception > 31)
+		return;
+
+	handler_table[exception] = handler;
+}
 
 void exception_hang(int vect, unsigned long addr)
 {
 	printf("Unhandled exception at 0x%x ", vect&0xff00);
 	switch (vect&0xff00) {
+	case 0x100:
+		puts("(Reset)\n");
+		break;
 	case 0x200:
 		puts("(Bus Error)\n");
 		break;

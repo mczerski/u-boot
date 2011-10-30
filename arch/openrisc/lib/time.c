@@ -33,7 +33,7 @@ static unsigned long timestamp;
 /* how many cycles per us */
 #define TIMER_CYCLES_US       (CONFIG_SYS_CLK_FREQ/1000000uL)
 
-extern void _exception_handler_add(int,unsigned long);
+extern void exception_install_handler(int, interrupt_handler_t *);
 
 void timer_isr(void)
 {
@@ -45,7 +45,7 @@ void timer_isr(void)
 int timer_init(void)
 {
 	/* Install timer exception handler */
-	_exception_handler_add(5,(unsigned long)timer_isr);
+	exception_install_handler(5, timer_isr);
 
 	/* Set up the timer for the first expiration. */
 	timestamp = 0;
