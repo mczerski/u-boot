@@ -30,81 +30,20 @@
 
 #include <asm/spr-defs.h>
 
-#define INTERRUPT_HANDLER_NOT_SET -1
-
 	.data
 	.align 4
+
 	.global _interrupt_handler_table
 _interrupt_handler_table:
-_interrupt_handler0:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler1:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler2:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler3:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler4:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler5:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler6:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler7:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler8:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler9:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler10:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler11:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler12:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler13:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler14:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler15:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler16:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler17:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler18:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler19:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler20:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler21:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler22:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler23:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler24:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler25:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler26:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler27:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler28:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler29:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler30:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler31:	.long	INTERRUPT_HANDLER_NOT_SET
+	.rept 32
+	.long 0
+	.endr
 
 	.global _interrupt_handler_data_ptr_table
 _interrupt_handler_data_ptr_table:
-_interrupt_handler_data_ptr0:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr1:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr2:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr3:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr4:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr5:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr6:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr7:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr8:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr9:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr10:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr11:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr12:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr13:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr14:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr15:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr16:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr17:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr18:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr19:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr20:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr21:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr22:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr23:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr24:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr25:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr26:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr27:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr28:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr29:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr30:	.long	INTERRUPT_HANDLER_NOT_SET
-_interrupt_handler_data_ptr31:	.long	INTERRUPT_HANDLER_NOT_SET
-
-
+	.rept 32
+	.long 0
+	.endr
 
 /*
  * Function to call appropriate interrupt handler
@@ -125,9 +64,6 @@ _interrupt_handler:
 	/* Load handler table base address */
 	l.movhi r7,hi(_interrupt_handler_table)
 	l.ori	r7,r7,lo(_interrupt_handler_table)
-	/* Check to see if this handler has been set yet */
-	l.movhi r8,hi(INTERRUPT_HANDLER_NOT_SET)
-	l.ori 	r8,r8,lo(INTERRUPT_HANDLER_NOT_SET)
 	/* Load data pointer table base address */
 	l.movhi r12,hi(_interrupt_handler_data_ptr_table)
 	l.ori	r12,r12,lo(_interrupt_handler_data_ptr_table)
@@ -150,8 +86,8 @@ _interrupt_handler:
 	/* Fetch handler function address */
 	l.lwz	r6,0(r6)
 
-	/* Double check it's valid, compare against INTERRUPT_HANDLER_NOT_SET */
-	l.sfne	r6,r8
+	/* Check that function addres != null */
+	l.sfnei	r6,0x0
 	/* Skip if no handler: TODO: Indicate interrupt fired but no handler*/
 	l.bnf .L1
 	l.nop
@@ -179,70 +115,3 @@ _interrupt_handler:
 	l.mtspr	r0,r3,SPR_PICSR
 	l.jr	r9
 	l.addi	r1,r1,12
-
-
-
-/*
- * Function to add handler to table
- */
-	.global	irq_install_handler
-        .type	irq_install_handler,@function
-
-	/* r3 should have IRQ line for peripheral */
-	/* r4 should have handler function address */
-	/* r5 should have data pointer */
-irq_install_handler:
-	l.addi 	r1,r1,-4
-	l.sw	0(r1),r6
-	/* Convert interrupt number into word address */
-	l.slli	r3,r3,2
-	l.addi	r3,r3,-4
-	/* Get address of interrupt handler table */
-	l.movhi r6,hi(_interrupt_handler_table)
-	l.ori	r6,r6,lo(_interrupt_handler_table)
-	/* Add handler offset to table base */
-	l.add	r6,r6,r3
-	/* Store handler function address */
-	l.sw 	0(r6),r4
-	/* Get address of interrupt handler data ptr table */
-	l.movhi r6,hi(_interrupt_handler_data_ptr_table)
-	l.ori	r6,r6,lo(_interrupt_handler_data_ptr_table)
-	/* Add handler offset to table base */
-	l.add	r6,r6,r3
-	/* Store handler data pointer address */
-	l.sw 	0(r6),r5
-	/* Restore r6 */
-	l.lwz	r6,0(r1)
-	/* Return via link register */
-	l.jr	r9
-	/* Restore stack value */
-	l.addi	r1,r1,4
-
-	.global	irq_free_handler
-        .type	irq_free_handler,@function
-
-	/* r3 should have IRQ line for peripheral */
-irq_free_handler:
-	l.addi 	r1,r1,-8
-	l.sw	0(r1),r6
-	l.sw	4(r1),r4
-	/* Convert interrupt number into word address */
-	l.slli	r3,r3,2
-	l.addi	r3,r3,-4
-	/* Get address of interrupt handler table */
-	l.movhi r6,hi(_interrupt_handler_table)
-	l.ori	r6,r6,lo(_interrupt_handler_table)
-	/* Add handler offset to table base */
-	l.add	r6,r6,r3
-	/* Prepare reg with not-set value */
-	l.movhi	r4,hi(INTERRUPT_HANDLER_NOT_SET)
-	l.ori	r4,r4,lo(INTERRUPT_HANDLER_NOT_SET)
-	/* Store at handler function address */
-	l.sw 	0(r6),r4
-	/* Restore r4,r6 */
-	l.lwz	r6,0(r1)
-	l.lwz	r4,4(r1)
-	/* Return via link register */
-	l.jr	r9
-	/* Restore stack value */
-	l.addi	r1,r1,8

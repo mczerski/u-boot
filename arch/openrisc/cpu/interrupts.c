@@ -23,11 +23,7 @@
 #include <asm/system.h>
 #include <common.h>
 
-#define INTERRUPT_HANDLER_NOT_SET -1
-
-/* r3 should have exception number (2 for buserr, 5 for tick, etc.) */
-/* r4 should have handler function address */
-extern void _exception_handler_add(int,void(*)(void));
+extern void exception_install_handler(int, interrupt_handler_t *);
 extern void _interrupt_handler(void);
 
 extern unsigned long _interrupt_handler_table;
@@ -36,8 +32,7 @@ extern unsigned long _interrupt_handler_data_ptr_table;
 int interrupt_init(void)
 {
 	/* install handler for external interrupt exception */
-	_exception_handler_add(8,_interrupt_handler);
-
+	exception_install_handler(8, _interrupt_handler);
 	/* Enable interrupts in supervisor register */
 	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_IEE);
 
@@ -52,7 +47,6 @@ void enable_interrupts(void)
 	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_TEE);
 }
 
-
 int disable_interrupts(void)
 {
 	/* Clear interrupt enable bit in supervisor register */
@@ -60,6 +54,30 @@ int disable_interrupts(void)
 	/* Disable timer exception */
 	mtspr(SPR_SR, mfspr(SPR_SR) & ~SPR_SR_TEE);
 	return 0;
+}
+
+void irq_install_handler(int irq, interrupt_handler_t *handler, void *arg)
+{
+	ulong *handler_table = &_interrupt_handler_table;
+	ulong *arg_table = &_interrupt_handler_data_ptr_table;
+
+	if (irq < 0 || irq > 31)
+		return;
+
+	handler_table[irq] = handler;
+	arg_table[irq] = arg;
+}
+
+void irq_free_handler(int irq)
+{
+	ulong *handler_table = &_interrupt_handler_table;
+	ulong *arg_table = &_interrupt_handler_data_ptr_table;
+
+	if (irq < 0 || irq > 31)
+		return;
+
+	handler_table[irq] = 0;
+	arg_table[irq] = 0;
 }
 
 #if defined(CONFIG_CMD_IRQ)
@@ -76,12 +94,13 @@ int do_irqinfo(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	printf("-----------------\n");
 
 	for (i=0; i<32; i++) {
-		if (handler[i] != INTERRUPT_HANDLER_NOT_SET) {
-			printf("%02d  %08lx  %08lx\n",
-				i,
+		if (handler[i])
+			printf("%02d  %08lx  %08lx\n", i,
 				(ulong)handler[i],
 				(ulong)arg[i]);
-		}
+		else
+			printf("%02d  Not set   Not set\n", i);
+
 	}
 	printf("\n");
 
