@@ -64,8 +64,8 @@ void irq_install_handler(int irq, interrupt_handler_t *handler, void *arg)
 	if (irq < 0 || irq > 31)
 		return;
 
-	handler_table[irq] = handler;
-	arg_table[irq] = arg;
+	handler_table[irq] = (ulong)handler;
+	arg_table[irq] = (ulong)arg;
 }
 
 void irq_free_handler(int irq)

@@ -31,7 +31,7 @@ void exception_install_handler(int exception, interrupt_handler_t *handler)
 	if (exception < 0 || exception > 31)
 		return;
 
-	handler_table[exception] = handler;
+	handler_table[exception] = (ulong)handler;
 }
 
 void exception_hang(int vect, unsigned long addr)
