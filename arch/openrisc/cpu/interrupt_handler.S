@@ -86,7 +86,7 @@ _interrupt_handler:
 	/* Fetch handler function address */
 	l.lwz	r6,0(r6)
 
-	/* Check that function addres != null */
+	/* Check that function address != null */
 	l.sfnei	r6,0x0
 	/* Skip if no handler: TODO: Indicate interrupt fired but no handler*/
 	l.bnf .L1
