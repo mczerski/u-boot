@@ -21,6 +21,7 @@
 #include <asm/system.h>
 #include <common.h>
 
+/* TODO: remove this */
 void flush_dcache(unsigned long addr, unsigned long size)
 {
 	unsigned long target = addr + size;
@@ -50,11 +51,9 @@ void invalidate_dcache_range(unsigned long addr, unsigned long stop)
 	}
 }
 
-void flush_icache(unsigned long addr, unsigned long size)
+static void invalidate_icache_range(unsigned long addr, unsigned long stop)
 {
-	unsigned long target = addr + size;
-
-	while (addr < target)
+	while (addr < stop)
 	{
 		mtspr(SPR_ICBIR, addr);
 		addr +=4;
@@ -63,8 +62,8 @@ void flush_icache(unsigned long addr, unsigned long size)
 
 void flush_cache(unsigned long addr, unsigned long size)
 {
-	flush_dcache(addr, size);
-	flush_icache(addr, size);
+	flush_dcache_range(addr, addr + size);
+	invalidate_icache_range(addr, addr + size);
 }
 
 int icache_status(void)
