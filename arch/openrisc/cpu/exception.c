@@ -24,7 +24,7 @@
 extern void hang(void);
 extern unsigned long _exception_handler_table;
 
-void exception_install_handler(int exception, interrupt_handler_t *handler)
+void exception_install_handler(int exception, void (*handler)(void))
 {
 	ulong *handler_table = &_exception_handler_table;
 

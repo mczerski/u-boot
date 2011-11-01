@@ -23,7 +23,7 @@
 #include <asm/system.h>
 #include <common.h>
 
-extern void exception_install_handler(int, interrupt_handler_t *);
+extern void exception_install_handler(int, void (*)(void));
 extern void _interrupt_handler(void);
 
 extern unsigned long _interrupt_handler_table;

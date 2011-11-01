@@ -35,7 +35,7 @@ static ulong timestamp;
 /* how many cycles per us */
 #define TIMER_CYCLES_US       (CONFIG_SYS_CLK_FREQ/1000000uL)
 
-extern void exception_install_handler(int, interrupt_handler_t *);
+extern void exception_install_handler(int, void (*)(void));
 
 void timer_isr(void)
 {
