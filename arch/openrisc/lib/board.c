@@ -44,8 +44,6 @@
 #include <timestamp.h>
 #include <version.h>
 
-const char version_string[] = U_BOOT_VERSION" ("U_BOOT_DATE" - "U_BOOT_TIME")";
-
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
