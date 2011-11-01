@@ -70,10 +70,8 @@ int do_bootm_linux(int flag, int argc, char * const argv[],
 				"ramdisk 0x%08lx, FDT 0x%08lx...\n",
 		(ulong) kernel, rd_data_start, (ulong) of_flat_tree);
 #endif
-	if (dcache_status())
-		flush_dcache((ulong)kernel, checkdcache());
-	if (icache_status())
-		flush_icache((ulong)kernel, checkicache());
+	if (dcache_status() || icache_status())
+		flush_cache((ulong)kernel, max(checkdcache(), checkicache()));
 
 	/*
 	 * Linux Kernel Parameters (passing device tree):
