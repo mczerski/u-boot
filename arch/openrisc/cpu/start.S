@@ -214,7 +214,6 @@ _start:
 	l.ori	r5, r5, lo(_bss_end)
 .L_clear_bss:
 	l.sw	0(r4), r0
-	l.addi	r4,r4,4
 	l.sfltu	r4,r5
 	l.bf	.L_clear_bss
 	 l.addi	r4,r4,4
