@@ -33,8 +33,6 @@ _exception_handler_table:
 
 /*
  * Function to call appropriate exception handler
- * r3 = address of exception vector
- * r4 = address where exception occurred
  */
 	.section .text
 	.global	_exception_handler
