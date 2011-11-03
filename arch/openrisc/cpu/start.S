@@ -219,9 +219,6 @@ _start:
 	l.bf	.L_clear_bss
 	 l.addi	r4,r4,4
 
-	l.jal	cache_init
-	 l.nop
-
 	/* Reset registers before jumping to board_init */
 	l.andi	r3, r0, 0
 	l.andi	r4, r0, 0

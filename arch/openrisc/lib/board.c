@@ -59,6 +59,7 @@ DECLARE_GLOBAL_DATA_PTR;
  * "continue" and != 0 means "fatal error, hang the system".
  */
 
+extern int cache_init(void);
 extern int timer_init(void);
 
 typedef int (init_fnc_t)(void);
@@ -68,6 +69,7 @@ typedef int (init_fnc_t)(void);
  */
 
 init_fnc_t *init_sequence[] = {
+	cache_init,
 	timer_init,		/* initialize timer */
 	env_init,
 	serial_init,

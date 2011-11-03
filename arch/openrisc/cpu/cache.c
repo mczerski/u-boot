@@ -142,7 +142,7 @@ void icache_disable(void)
 	mtspr(SPR_SR, mfspr(SPR_SR) & ~SPR_SR_ICE);
 }
 
-void cache_init(void)
+int cache_init(void)
 {
 	if (mfspr(SPR_UPR) & SPR_UPR_ICP) {
 		icache_disable();
@@ -155,4 +155,6 @@ void cache_init(void)
 		invalidate_dcache_range(0, checkdcache());
 		dcache_enable();
 	}
+
+	return 0;
 }
