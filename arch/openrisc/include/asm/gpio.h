@@ -5,7 +5,7 @@
  *
  * based on nios2 gpio driver
  * Copyright (C) 2010 Thomas Chou <thomas@wytron.com.tw>
- * 
+ *
  * when CONFIG_SYS_GPIO_BASE is not defined, board may provide
  * its own driver.
  *
@@ -47,7 +47,7 @@ static inline void gpio_set_value(unsigned gpio, int value)
 {
 	u8 tmp = readb(CONFIG_SYS_GPIO_BASE + gpio/8);
 
-	if (value) 
+	if (value)
 		tmp |= (1 << gpio%8);
 	else
 		tmp &= ~(1 << gpio%8);
@@ -57,16 +57,17 @@ static inline void gpio_set_value(unsigned gpio, int value)
 static inline int gpio_direction_input(unsigned gpio)
 {
 	gpio_set_value(gpio + CONFIG_SYS_GPIO_WIDTH, 0);
-	return 0; 
+
+	return 0;
 }
 
 static inline int gpio_direction_output(unsigned gpio, int value)
 {
 	gpio_set_value(gpio + CONFIG_SYS_GPIO_WIDTH, 1);
 	gpio_set_value(gpio, value);
+
 	return 0;
 }
-
 
 static inline int gpio_is_valid(int number)
 {
