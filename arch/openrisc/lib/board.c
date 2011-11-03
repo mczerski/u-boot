@@ -89,7 +89,7 @@ void board_init(void)
 
 	gd = (gd_t *)CONFIG_SYS_GBL_DATA_ADDR;
 
-	memset(gd, 0, GENERATED_GBL_DATA_SIZE);
+	memset((void *)gd, 0, GENERATED_GBL_DATA_SIZE);
 
 	gd->bd = (bd_t *)(gd+1);	/* At end of global data */
 	gd->baudrate = CONFIG_BAUDRATE;
