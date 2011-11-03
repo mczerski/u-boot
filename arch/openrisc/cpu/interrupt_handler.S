@@ -55,63 +55,63 @@ _interrupt_handler_data_ptr_table:
 
 _interrupt_handler:
 	/* Make room on stack, save link register */
-	l.addi	r1,r1,-12
-	l.sw	0(r1),r9
+	l.addi	r1, r1, -12
+	l.sw	0(r1), r9
 
 	/* Read PICSR */
-	l.mfspr	r3,r0,SPR_PICSR
+	l.mfspr	r3, r0, SPR_PICSR
 
 	/* Load handler table base address */
-	l.movhi r7,hi(_interrupt_handler_table)
-	l.ori	r7,r7,lo(_interrupt_handler_table)
+	l.movhi	r7, hi(_interrupt_handler_table)
+	l.ori	r7, r7, lo(_interrupt_handler_table)
 	/* Load data pointer table base address */
-	l.movhi r12,hi(_interrupt_handler_data_ptr_table)
-	l.ori	r12,r12,lo(_interrupt_handler_data_ptr_table)
+	l.movhi	r12, hi(_interrupt_handler_data_ptr_table)
+	l.ori	r12, r12, lo(_interrupt_handler_data_ptr_table)
 
 .L0:
 	/* Find first set bit in PICSR */
-	l.ff1	r4,r3
+	l.ff1	r4, r3
 	/* Any bits set? */
-	l.sfne	r4,r0
+	l.sfne	r4, r0
 	/* If none, finish */
 	l.bnf	.L2
-	l.nop
+	 l.nop
 	/* What is IRQ function table offset? */
-	l.addi	r5,r4,-1
-	l.slli	r6,r5,2
+	l.addi	r5, r4, -1
+	l.slli	r6, r5, 2
 	/* Add this to table bases */
-	l.add	r6,r6,r7
-	l.add	r13,r6,r12
+	l.add	r6, r6, r7
+	l.add	r13, r6, r12
 
 	/* Fetch handler function address */
-	l.lwz	r6,0(r6)
+	l.lwz	r6, 0(r6)
 
 	/* Check that function address != null */
-	l.sfnei	r6,0x0
+	l.sfnei	r6, 0x0
 	/* Skip if no handler: TODO: Indicate interrupt fired but no handler*/
-	l.bnf .L1
-	l.nop
+	l.bnf	.L1
+	 l.nop
 
 	/* Pull out data pointer from table, save r3, we'll write over it */
-	l.sw	4(r1),r3
-	l.lwz	r3,0(r13)
+	l.sw	4(r1), r3
+	l.lwz	r3, 0(r13)
 	/* Call handler, save r5 in delay slot */
 	l.jalr	r5
-	l.sw	8(r1),r5
+	 l.sw	8(r1), r5
 
 	/* Reload r3,r5 */
-	l.lwz	r3,4(r1)
-	l.lwz	r5,8(r1)
+	l.lwz	r3, 4(r1)
+	l.lwz	r5, 8(r1)
 .L1:
 	/* Clear bit from PICSR, return to start of checking loop */
-	l.ori	r6,r0,1
-	l.sll	r6,r6,r5
+	l.ori	r6, r0, 1
+	l.sll	r6, r6, r5
 	l.j	.L0
-	l.xor	r3,r3,r6
+	 l.xor	r3, r3, r6
 
 .L2:
 	/* Finish up - write PICSR back, restore r9*/
-	l.lwz	r9,0(r1)
-	l.mtspr	r0,r3,SPR_PICSR
+	l.lwz	r9, 0(r1)
+	l.mtspr	r0, r3, SPR_PICSR
 	l.jr	r9
-	l.addi	r1,r1,12
+	 l.addi	r1, r1, 12
