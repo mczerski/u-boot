@@ -1,45 +1,39 @@
 #ifndef __ASM_OPENRISC_IO_H
 #define __ASM_OPENRISC_IO_H
 
-#include <asm/page.h>   /* for __va, __pa */
+/*
+ * Given a physical address and a length, return a virtual address
+ * that can be used to access the memory range with the caching
+ * properties specified by "flags".
+ */
+#define MAP_NOCACHE	(0)
+#define MAP_WRCOMBINE	(0)
+#define MAP_WRBACK	(0)
+#define MAP_WRTHROUGH	(0)
 
+static inline void *
+map_physmem(phys_addr_t paddr, unsigned long len, unsigned long flags)
+{
+	return (void *)paddr;
+}
 
 /*
- * Change virtual addresses to physical addresses and vv.
+ * Take down a mapping set up by map_physmem().
  */
-
-static inline unsigned long virt_to_phys(volatile void * address)
+static inline void unmap_physmem(void *vaddr, unsigned long flags)
 {
-	return __pa(address);
+
 }
-
-static inline void * phys_to_virt(unsigned long address)
-{
-	return __va(address);
-}
-
-extern void * __ioremap(unsigned long offset, unsigned long size, unsigned long flags);
-
-extern inline void * ioremap(unsigned long offset, unsigned long size)
-{
-	return __ioremap(offset, size, 0);
-}
-
-/* #define _PAGE_CI       0x002 */
-extern inline void * ioremap_nocache(unsigned long offset, unsigned long size)
-{
-	return __ioremap(offset, size, 0x002);
-}
-
-extern void iounmap(void *addr);
 
 /*
- * IO bus memory addresses are also 1:1 with the physical address
+ * Change virtual addresses to physical addresses
  */
 
-/* Deprecated */
-#define virt_to_bus virt_to_phys
-#define bus_to_virt phys_to_virt
+static inline phys_addr_t virt_to_phys(void * vaddr)
+{
+	return (phys_addr_t)(vaddr);
+}
+
 
 /*
  * readX/writeX() are used to access memory mapped devices. On some
@@ -69,7 +63,6 @@ extern void iounmap(void *addr);
  * Again, OpenRISC does not require mem IO specific function.
  */
 
-#define eth_io_copy_and_sum(a,b,c,d)	eth_copy_and_sum((a),(void *)(b),(c),(d))
 
 #define IO_BASE			0x0
 #define IO_SPACE_LIMIT 		0xffffffff
