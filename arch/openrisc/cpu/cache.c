@@ -105,3 +105,54 @@ int checkdcache(void)
 
 	return cache_set_size * cache_ways * cache_block_size;
 }
+
+void dcache_enable(void)
+{
+	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_DCE);
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+}
+
+void dcache_disable(void)
+{
+	mtspr(SPR_SR, mfspr(SPR_SR) & ~SPR_SR_DCE);
+}
+
+void icache_enable(void)
+{
+	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_ICE);
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+	asm("l.nop");
+}
+
+void icache_disable(void)
+{
+	mtspr(SPR_SR, mfspr(SPR_SR) & ~SPR_SR_ICE);
+}
+
+void cache_init(void)
+{
+	if (mfspr(SPR_UPR) & SPR_UPR_ICP) {
+		icache_disable();
+		invalidate_icache_range(0, checkicache());
+		icache_enable();
+	}
+
+	if (mfspr(SPR_UPR) & SPR_UPR_DCP) {
+		dcache_disable();
+		invalidate_dcache_range(0, checkdcache());
+		dcache_enable();
+	}
+}

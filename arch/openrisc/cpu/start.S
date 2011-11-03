@@ -1,98 +1,53 @@
 /*
- * Startup code for OpenRISC u-boot
+ * (C) Copyright 2011, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+ * (C) Copyright 2011, Julius Baxter <julius@opencores.org>
  *
- * Copyright (C) 2010, Embecosm Limited <info@embecosm.com>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
  *
- * Contributor Jeremy Bennett       <jeremy.bennett@embecosm.com>
- * Contributor Julius Baxter        <julius@opencores.org>
- * Contributor Stefan Kristiansson  <stefan.kristiansson@saunalahti.fi>
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  Currently for in-ram only (we jump to board_init_r, no flash option yet)
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <asm/spr-defs.h>
 #include <config.h>
 
-/*
- * !Macro to load a symbol's address into a register.
- *
- * @param[in] gpr  General purpose register to load address into.
- * @param[in] symbol Name of symbol to load.
- */
-#define LOAD_SYMBOL_2_GPR(gpr,symbol)  \
-	.global symbol ;               \
-	l.movhi gpr, hi(symbol) ;      \
-	l.ori   gpr, gpr, lo(symbol)
-
-/*
- * !Macro to handle exceptions.
- *
- * Load NPC into r3, EPCR into r4
- */
-
-/*
- * Size of redzone + size of space required to store state
- * This value must match that in _exception_handler.S
- */
 #define EXCEPTION_STACK_SIZE (128+128)
 
-#define CALL_EXCEPTION_HANDLER            		\
-	l.addi  r1, r1, -EXCEPTION_STACK_SIZE;          \
-	l.sw    4(r1), r3;             			\
-	l.sw    8(r1), r4;             			\
-	l.mfspr r3,r0,SPR_NPC;          		\
-	l.j 	_exception_handler; 			\
-	l.mfspr r4,r0,SPR_EPCR_BASE
+#define HANDLE_EXCEPTION			\
+	l.addi	r1, r1, -EXCEPTION_STACK_SIZE;	\
+	l.sw	0x1c(r1), r9;			\
+	l.jal	_exception_handler;		\
+	 l.nop;					\
+	l.lwz 	r9, 0x1c(r1);			\
+	l.addi	r1, r1, EXCEPTION_STACK_SIZE;	\
+	l.rfe;					\
+	 l.nop
 
-/* Exception vectors */
-	.section .vectors,"ax"
-	.org	0x0
-	l.nop 0x1
-	/* 0x100: RESET exception */
-        .org	0x100
+	.section .vectors, "ax"
+	.global __reset
 
-	/* declare it like so we can call from reset_cpu() */
-	.global	__reset
+	/* reset */
+	.org	0x100
 __reset:
-	l.movhi r0, 0
-	l.movhi r1, 0
-	l.movhi r2, 0
-	l.movhi r3, 0
-	l.movhi r4, 0
-	l.movhi r5, 0
-	l.movhi r6, 0
-	l.movhi r7, 0
-	l.movhi r8, 0
-	l.movhi r9, 0
-	l.movhi r10, 0
-	l.movhi r11, 0
-	l.movhi r12, 0
-	l.movhi r13, 0
-	l.movhi r14, 0
-	l.movhi r15, 0
-#ifndef __OR32_16GPRS__
-	l.movhi r16, 0
-	l.movhi r17, 0
-	l.movhi r18, 0
-	l.movhi r19, 0
-	l.movhi r20, 0
-	l.movhi r21, 0
-	l.movhi r22, 0
-	l.movhi r23, 0
-	l.movhi r24, 0
-	l.movhi r25, 0
-	l.movhi r26, 0
-	l.movhi r27, 0
-	l.movhi r28, 0
-	l.movhi r29, 0
-	l.movhi r30, 0
-	l.movhi r31, 0
-#endif
-	/* Clear status register, set supervisor mode */
-	l.ori r1, r0, SPR_SR_SM
-	l.mtspr r0, r1, SPR_SR
-	/* Clear timer mode register*/
-	l.mtspr r0, r0, SPR_TTMR
+	/* there is no guarantee r0 is hardwired to zero, clear it here */
+	l.andi	r0, r0, 0
+	/* reset stack and frame pointers */
+	l.andi	r1, r0, 0
+	l.andi	r2, r0, 0
+
+	/* set supervisor mode */
+	l.ori	r3,r0,SPR_SR_SM
+	l.mtspr	r0,r3,SPR_SR
 
 	/* Relocate u-boot */
 	l.movhi	r3,hi(__start)		/* source start address */
@@ -101,13 +56,14 @@ __reset:
 	l.ori	r4,r4,lo(_stext)
 	l.movhi	r5,hi(__end)		/* dest end address */
 	l.ori	r5,r5,lo(__end)
+
 .L_reloc:
 	l.lwz	r6,0(r3)
 	l.sw	0(r4),r6
 	l.addi	r3,r3,4
 	l.sfltu	r4,r5
 	l.bf	.L_reloc
-	l.addi	r4,r4,4			/* delay slot */
+	 l.addi	r4,r4,4			/* delay slot */
 
 #ifdef CONFIG_SYS_RELOCATE_VECTORS
 	/* Relocate vectors from 0xf0000000 to 0x00000000 */
@@ -120,372 +76,183 @@ __reset:
 	l.addi	r5, r5, 4
 	l.sfeq	r5,r6
 	l.bnf	.L_relocvectors
-	l.addi	r4,r4, 4
+	 l.addi	r4,r4, 4
 #endif
-	/* Jump to board initialisation code */
-	LOAD_SYMBOL_2_GPR(r4, _start)
-	l.jr    r4
-	l.nop
 
+	l.j	_start
+	 l.nop
+
+	/* bus error */
 	.org	0x200
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x300: Data Page Fault exception */
+	/* data page fault */
 	.org	0x300
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x400: Insn Page Fault exception */
+	/* instruction page fault */
 	.org	0x400
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x500: Timer exception */
+	/* tick timer */
 	.org	0x500
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x600: Aligment exception */
+	/* alignment */
 	.org	0x600
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x700: Illegal insn exception */
+	/* illegal instruction */
 	.org	0x700
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x800: External interrupt exception */
+	/* external interrupt */
 	.org	0x800
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0x900: DTLB miss exception */
+	/* D-TLB miss */
 	.org	0x900
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0xa00: ITLB miss exception */
+	/* I-TLB miss */
 	.org	0xa00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0xb00: Range exception */
+	/* range */
 	.org	0xb00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0xc00: Syscall exception */
+	/* system call */
 	.org	0xc00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0xd00: floating point exception */
+	/* floating point */
 	.org	0xd00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0xe00: Trap exception */
+	/* trap */
 	.org	0xe00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* 0xf00: Reserved exceptions */
+	/* reserved */
 	.org	0xf00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	.org	0x1000
-	CALL_EXCEPTION_HANDLER
-
+	/* reserved */
 	.org	0x1100
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1200
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1300
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1400
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1500
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1600
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1700
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1800
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1900
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1a00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1b00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1c00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1d00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1e00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
+	/* reserved */
 	.org	0x1f00
-	CALL_EXCEPTION_HANDLER
+	HANDLE_EXCEPTION
 
-	/* Pad to the end */
-	.org	0x1ffc
-	l.nop
-
-/* Do this in board-specific code init */
-
-/* Main entry point
- *
- * The remaining tasks are then:
- *  - optionally set up instruction and/or data caches
- *  - clear BSS
- *  - jump to the main function
- *  - loop forever (should never get here)
- */
-	/* The stack grows down from the top of writable memory. */
-	.section .data
-	.global stack
-stack:	.space	4,0
-
-	.section .text
-	.global	_start
-        .type	_start,@function
-
-
-	/* Following externs from board-specific object passed at link time */
-
+	/* Startup routine */
+	.text
+	.global _start
 _start:
-	/* Initialise stack and frame pointer (set to same value) */
-	l.movhi	r1,hi(CONFIG_SYS_INIT_SP_ADDR)
-	l.ori	r1,r1,lo(CONFIG_SYS_INIT_SP_ADDR)
-	l.or	r2,r1,r1
+	/* Init stack and frame pointers */
+	l.movhi	r1, hi(CONFIG_SYS_INIT_SP_ADDR)
+	l.ori	r1, r1, lo(CONFIG_SYS_INIT_SP_ADDR)
+	l.or	r2, r0, r1
 
-	/* Initialise cache */
-	l.jal 	_cache_init
-	l.nop
+	/* clear BSS segments */
+	l.movhi	r4, hi(_bss_start)
+	l.ori	r4, r4, lo(_bss_start)
+	l.movhi	r5, hi(_bss_end)
+	l.ori	r5, r5, lo(_bss_end)
+.L_clear_bss:
+	l.sw	0(r4), r0
+	l.addi	r4,r4,4
+	l.sfltu	r4,r5
+	l.bf	.L_clear_bss
+	 l.addi	r4,r4,4
 
-	/* Clear BSS */
-.L10:	l.movhi r3,hi(_bss_start)
-	l.ori   r3,r3,lo(_bss_start)
-	l.movhi r4,hi(_bss_end)
-	l.ori   r4,r4,lo(_bss_end)
+	l.jal	cache_init
+	 l.nop
 
-.L1:    l.sw    (0)(r3),r0
-        l.sfltu r3,r4
-        l.bf    .L1
-        l.addi  r3,r3,4		/* Delay slot */
+	/* Reset registers before jumping to board_init */
+	l.andi	r3, r0, 0
+	l.andi	r4, r0, 0
+	l.andi	r5, r0, 0
+	l.andi	r6, r0, 0
+	l.andi	r7, r0, 0
+	l.andi	r8, r0, 0
+	l.andi	r9, r0, 0
+	l.andi	r10, r0, 0
+	l.andi	r11, r0, 0
+	l.andi	r12, r0, 0
+	l.andi	r13, r0, 0
+	l.andi	r14, r0, 0
+	l.andi	r15, r0, 0
+	l.andi	r17, r0, 0
+	l.andi	r18, r0, 0
+	l.andi	r19, r0, 0
+	l.andi	r20, r0, 0
+	l.andi	r21, r0, 0
+	l.andi	r22, r0, 0
+	l.andi	r23, r0, 0
+	l.andi	r24, r0, 0
+	l.andi	r25, r0, 0
+	l.andi	r26, r0, 0
+	l.andi	r27, r0, 0
+	l.andi	r28, r0, 0
+	l.andi	r29, r0, 0
+	l.andi	r30, r0, 0
+	l.andi	r31, r0, 0
 
-	/* Jump to main program entry point (argc = argv = envp = 0) */
-	l.or	r3,r0,r0
-	l.or	r4,r0,r0
-	l.jal   board_init
-	l.or	r5,r0,r0		/* Delay slot */
-
-
-	/* Loop forever */
-.L3:	l.j	.L3
-	l.nop	0x1
+	l.j	board_init
+	 l.nop
 
 	.size	_start, .-_start
-
-/*
- * This function is to be used ONLY during reset, before main() is called.
- * TODO: Perhaps break into individual enable instruction/data cache
- * sections functions, and provide disable functions, also, all
- * callable from C
- */
-_cache_init:
-
-	/* Instruction cache enable */
-	/* Check if IC present and skip enabling otherwise */
-.L6:	l.mfspr r3,r0,SPR_UPR
-	l.andi  r7,r3,SPR_UPR_ICP
-	l.sfeq  r7,r0
-	l.bf    .L8
-	l.nop
-
-	/* Disable IC */
-	l.mfspr r6,r0,SPR_SR
-	l.addi  r5,r0,-1
-	l.xori  r5,r5,SPR_SR_ICE
-	l.and   r5,r6,r5
-	l.mtspr r0,r5,SPR_SR
-
-	/* Establish cache block size
-	If BS=0, 16;
-	If BS=1, 32;
-	r14 contain block size
-	*/
-	l.mfspr r3,r0,SPR_ICCFGR
-	l.andi  r7,r3,SPR_ICCFGR_CBS
-	l.srli  r8,r7,7
-	l.ori   r4,r0,16
-	l.sll   r14,r4,r8
-
-	/* Establish number of cache sets
-	r10 contains number of cache sets
-	r8 contains log(# of cache sets)
-	*/
-	l.andi  r7,r3,SPR_ICCFGR_NCS
-	l.srli  r8,r7,3
-	l.ori   r4,r0,1
-	l.sll   r10,r4,r8
-
-	/* Invalidate IC */
-	l.addi  r6,r0,0
-	l.sll   r5,r14,r8
-
-.L7:	l.mtspr r0,r6,SPR_ICBIR
-	l.sfne  r6,r5
-	l.bf    .L7
-	l.add   r6,r6,r14
-
-	/* Enable IC */
-	l.mfspr r6,r0,SPR_SR
-	l.ori   r6,r6,SPR_SR_ICE
-	l.mtspr r0,r6,SPR_SR
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-
-	/* Data cache enable */
-        /* Check if DC present and skip enabling otherwise */
-.L8:    l.mfspr r3,r0,SPR_UPR
-        l.andi  r7,r3,SPR_UPR_DCP
-        l.sfeq  r7,r0
-        l.bf    .out
-        l.nop
-        /* Disable DC */
-        l.mfspr r6,r0,SPR_SR
-        l.addi  r5,r0,-1
-        l.xori  r5,r5,SPR_SR_DCE
-	l.and   r5,r6,r5
-        l.mtspr r0,r5,SPR_SR
-        /* Establish cache block size
-           If BS=0, 16;
-           If BS=1, 32;
-           r14 contain block size
-        */
-        l.mfspr r3,r0,SPR_DCCFGR
-        l.andi  r7,r3,SPR_DCCFGR_CBS
-        l.srli  r8,r7,7
-        l.ori   r4,r0,16
-        l.sll   r14,r4,r8
-        /* Establish number of cache sets
-           r10 contains number of cache sets
-           r8 contains log(# of cache sets)
-        */
-	l.andi  r7,r3,SPR_DCCFGR_NCS
-	l.srli  r8,r7,3
-        l.ori   r4,r0,1
-        l.sll   r10,r4,r8
-        /* Invalidate DC */
-        l.addi  r6,r0,0
-        l.sll   r5,r14,r8
-
-.L9:    l.mtspr r0,r6,SPR_DCBIR
-        l.sfne  r6,r5
-        l.bf    .L9
-	l.add   r6,r6,r14
-        /* Enable DC */
-        l.mfspr r6,r0,SPR_SR
-        l.ori   r6,r6,SPR_SR_DCE
-        l.mtspr r0,r6,SPR_SR
-
-.out:
-	/* Return */
-	l.jr	r9
-	l.nop
-
-
-/* Enable and disable functions - callable from anywhere. */
-
-	.global	icache_enable
-        .type	icache_enable,@function
-
-icache_enable:
-	l.addi	r1,r1,-4
-	l.sw	0(r1),r6
-	/* Enable IC */
-	l.mfspr r6,r0,SPR_SR
-	l.ori   r6,r6,SPR_SR_ICE
-	l.mtspr r0,r6,SPR_SR
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.lwz	r6,0(r1)
-	l.jr	r9
-	l.addi	r1,r1,4
-
-
-	.global	icache_disable
-        .type	icache_disable,@function
-
-icache_disable:
-	l.addi	r1,r1,-8
-	l.sw	0(r1),r5
-	l.sw	4(r1),r6
-	/* Disable IC */
-	l.mfspr r6,r0,SPR_SR
-	l.addi  r5,r0,-1
-	l.xori  r5,r5,SPR_SR_ICE
-	l.and   r5,r6,r5
-	l.mtspr r0,r5,SPR_SR
-	l.lwz	r5,0(r1)
-	l.lwz	r6,4(r1)
-	l.jr	r9
-	l.addi	r1,r1,8
-
-
-	.global	dcache_enable
-        .type	dcache_enable,@function
-
-dcache_enable:
-	l.addi	r1,r1,-4
-	l.sw	0(r1),r6
-	/* Enable DC */
-	l.mfspr r6,r0,SPR_SR
-	l.ori   r6,r6,SPR_SR_DCE
-	l.mtspr r0,r6,SPR_SR
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.nop
-	l.lwz	r6,0(r1)
-	l.jr	r9
-	l.addi	r1,r1,4
-
-
-	.global	dcache_disable
-        .type	dcache_disable,@function
-
-dcache_disable:
-	l.addi	r1,r1,-8
-	l.sw	0(r1),r5
-	l.sw	4(r1),r6
-	/* Disable DC */
-	l.mfspr r6,r0,SPR_SR
-	l.addi  r5,r0,-1
-	l.xori  r5,r5,SPR_SR_DCE
-	l.and   r5,r6,r5
-	l.mtspr r0,r5,SPR_SR
-	l.lwz	r5,0(r1)
-	l.lwz	r6,4(r1)
-	l.jr	r9
-	l.addi	r1,r1,8

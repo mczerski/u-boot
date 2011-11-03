@@ -22,9 +22,6 @@
 
 #include <asm/spr-defs.h>
 
-/* Warning - this must be the same as specified in start.S */
-#define EXCEPTION_STACK_SIZE (128+128)
-
 	.data
 	.align 4
 
@@ -45,20 +42,20 @@ _exception_handler_table:
         .type	_exception_handler,@function
 
 _exception_handler:
-	/* Store remainder of state (r3,r4 stored in vector entry)*/
+	/* Store state (r9 already saved)*/
 	l.sw	0x00(r1), r2
+	l.sw	0x04(r1), r3
+	l.sw	0x08(r1), r4
 	l.sw	0x0c(r1), r5
 	l.sw	0x10(r1), r6
 	l.sw	0x14(r1), r7
 	l.sw	0x18(r1), r8
-	l.sw	0x1c(r1), r9
 	l.sw	0x20(r1), r10
 	l.sw	0x24(r1), r11
 	l.sw	0x28(r1), r12
 	l.sw	0x2c(r1), r13
 	l.sw	0x30(r1), r14
 	l.sw	0x34(r1), r15
-#ifndef __OR32_16GPRS__
 	l.sw	0x38(r1), r16
 	l.sw	0x3c(r1), r17
 	l.sw	0x40(r1), r18
@@ -75,8 +72,11 @@ _exception_handler:
 	l.sw	0x6c(r1), r29
 	l.sw	0x70(r1), r30
 	l.sw	0x74(r1), r31
-#endif
-	/* Determine offset in table of exception handler using r3*/
+	/* Load address from where the exception occurred into r4 */
+	l.mfspr r4,r0,SPR_EPCR_BASE
+	/* Load Link address into r3 (i.e. vector address) */
+	l.or	r3, r0, r9
+	/* Determine offset in table of exception handler using r3 */
 	l.andi	r13,r3,0xffff
 	l.srli	r13,r13,6
 	/* r13 now contains offset in _exception_handler_table for function */
@@ -90,11 +90,14 @@ _exception_handler:
 	/* Check to see if this handler has been set yet */
 	l.sfnei	r13,0x0
 	l.bnf	.L1
-	l.nop
-
+	 l.nop
+	/* Save return address */
+	l.or	r14, r0, r9
 	/* Call exception handler, copy EPCR to r3 */
 	l.jalr	r13
 	l.or	r3,r4,r4
+	/* Load return address */
+	l.or	r9, r0, r14
 
 	/* Restore state */
 	l.lwz    r2, 0x00(r1)
@@ -104,14 +107,12 @@ _exception_handler:
 	l.lwz    r6, 0x10(r1)
 	l.lwz    r7, 0x14(r1)
 	l.lwz    r8, 0x18(r1)
-	l.lwz    r9, 0x1c(r1)
 	l.lwz    r10, 0x20(r1)
 	l.lwz    r11, 0x24(r1)
 	l.lwz    r12, 0x28(r1)
 	l.lwz    r13, 0x2c(r1)
 	l.lwz    r14, 0x30(r1)
 	l.lwz    r15, 0x34(r1)
-#ifndef __OR32_16GPRS__
 	l.lwz    r16, 0x38(r1)
 	l.lwz    r17, 0x3c(r1)
 	l.lwz    r18, 0x40(r1)
@@ -128,13 +129,10 @@ _exception_handler:
 	l.lwz    r29, 0x6c(r1)
 	l.lwz    r30, 0x70(r1)
 	l.lwz    r31, 0x74(r1)
-#endif
-	l.addi  r1, r1, EXCEPTION_STACK_SIZE
 
-	l.rfe
-	l.nop
-
+	l.jr	r9
+	 l.nop
 .L1:
 	/* Exception handler not set, loop */
 	l.jal	exception_hang
-	l.nop	0x0
+	 l.nop	0x0
