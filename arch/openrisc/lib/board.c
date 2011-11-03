@@ -61,7 +61,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 extern int timer_init(void);
 
-typedef int (init_fnc_t) (void);
+typedef int (init_fnc_t)(void);
 
 /*
  * Initialization sequence
@@ -80,7 +80,7 @@ init_fnc_t *init_sequence[] = {
 
 
 /***********************************************************************/
-void board_init (void)
+void board_init(void)
 {
 	bd_t *bd;
 	init_fnc_t **init_fnc_ptr;
@@ -94,20 +94,20 @@ void board_init (void)
 	gd->cpu_clk = CONFIG_SYS_CLK_FREQ;
 
 	bd = gd->bd;
-	bd->bi_memstart	= CONFIG_SYS_SDRAM_BASE;
+	bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;
 	bd->bi_memsize = CONFIG_SYS_SDRAM_SIZE;
 #ifndef CONFIG_SYS_NO_FLASH
 	bd->bi_flashstart = CONFIG_SYS_FLASH_BASE;
 #endif
 #if	defined(CONFIG_SYS_SRAM_BASE) && defined(CONFIG_SYS_SRAM_SIZE)
-	bd->bi_sramstart= CONFIG_SYS_SRAM_BASE;
-	bd->bi_sramsize	= CONFIG_SYS_SRAM_SIZE;
+	bd->bi_sramstart = CONFIG_SYS_SRAM_BASE;
+	bd->bi_sramsize = CONFIG_SYS_SRAM_SIZE;
 #endif
-	bd->bi_baudrate	= CONFIG_BAUDRATE;
+	bd->bi_baudrate = CONFIG_BAUDRATE;
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		WATCHDOG_RESET ();
-		if ((*init_fnc_ptr) () != 0) {
+		if ((*init_fnc_ptr)() != 0) {
 			hang();
 		}
 	}
