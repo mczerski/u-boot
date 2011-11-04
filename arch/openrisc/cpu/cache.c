@@ -27,18 +27,6 @@ static inline unsigned long get_linesize(void)
 	return ((mfspr(SPR_ICCFGR) & SPR_ICCFGR_CBS) ? 32 : 16);
 }
 
-/* TODO: remove this */
-void flush_dcache(unsigned long addr, unsigned long size)
-{
-	unsigned long target = addr + size;
-
-	while (addr < target)
-	{
-		mtspr(SPR_DCBFR, addr);
-		addr +=4;
-	}
-}
-
 void flush_dcache_range(unsigned long addr, unsigned long stop)
 {
 	unsigned long linesize = get_linesize();
