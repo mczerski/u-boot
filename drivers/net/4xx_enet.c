@@ -1349,7 +1349,7 @@ get_speed:
 		hw_p->rx_phys = bd_cached + MAL_TX_DESC_SIZE;
 		hw_p->tx = (mal_desc_t *)(bd_uncached);
 		hw_p->rx = (mal_desc_t *)(bd_uncached + MAL_TX_DESC_SIZE);
-		debug("hw_p->tx=%08x, hw_p->rx=%08x\n", hw_p->tx, hw_p->rx);
+		debug("hw_p->tx=%p, hw_p->rx=%p\n", hw_p->tx, hw_p->rx);
 	}
 
 	for (i = 0; i < NUM_TX_BUFF; i++) {
@@ -1362,7 +1362,7 @@ get_speed:
 		if ((NUM_TX_BUFF - 1) == i)
 			hw_p->tx[i].ctrl |= MAL_TX_CTRL_WRAP;
 		hw_p->tx_run[i] = -1;
-		debug("TX_BUFF %d @ 0x%08lx\n", i, (u32)hw_p->tx[i].data_ptr);
+		debug("TX_BUFF %d @ 0x%08x\n", i, (u32)hw_p->tx[i].data_ptr);
 	}
 
 	for (i = 0; i < NUM_RX_BUFF; i++) {
@@ -1373,7 +1373,7 @@ get_speed:
 			hw_p->rx[i].ctrl |= MAL_RX_CTRL_WRAP;
 		hw_p->rx[i].ctrl |= MAL_RX_CTRL_EMPTY | MAL_RX_CTRL_INTR;
 		hw_p->rx_ready[i] = -1;
-		debug("RX_BUFF %d @ 0x%08lx\n", i, (u32)hw_p->rx[i].data_ptr);
+		debug("RX_BUFF %d @ 0x%08x\n", i, (u32)hw_p->rx[i].data_ptr);
 	}
 
 	reg = 0x00000000;
@@ -1769,7 +1769,6 @@ static void emac_err (struct eth_device *dev, unsigned long isr)
  *-----------------------------------------------------------------------------*/
 static void enet_rcv (struct eth_device *dev, unsigned long malisr)
 {
-	struct enet_frame *ef_ptr;
 	unsigned long data_len;
 	unsigned long rx_eob_isr;
 	EMAC_4XX_HW_PST hw_p = dev->priv;
@@ -1828,8 +1827,6 @@ static void enet_rcv (struct eth_device *dev, unsigned long malisr)
 			} else {
 				hw_p->stats.rx_frames++;
 				hw_p->stats.rx += data_len;
-				ef_ptr = (struct enet_frame *) hw_p->rx[i].
-					data_ptr;
 #ifdef INFO_4XX_ENET
 				hw_p->stats.pkts_rx++;
 #endif

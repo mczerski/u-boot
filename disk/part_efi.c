@@ -121,40 +121,37 @@ static char *print_efiname(gpt_entry *pte)
 void print_part_efi(block_dev_desc_t * dev_desc)
 {
 	ALLOC_CACHE_ALIGN_BUFFER(gpt_header, gpt_head, 1);
-	gpt_entry **pgpt_pte = NULL;
+	gpt_entry *gpt_pte = NULL;
 	int i = 0;
 
 	if (!dev_desc) {
-		printf("%s: Invalid Argument(s)\n", __FUNCTION__);
+		printf("%s: Invalid Argument(s)\n", __func__);
 		return;
 	}
 	/* This function validates AND fills in the GPT header and PTE */
 	if (is_gpt_valid(dev_desc, GPT_PRIMARY_PARTITION_TABLE_LBA,
-			 gpt_head, pgpt_pte) != 1) {
-		printf("%s: *** ERROR: Invalid GPT ***\n", __FUNCTION__);
+			 &(gpt_head), &gpt_pte) != 1) {
+		printf("%s: *** ERROR: Invalid GPT ***\n", __func__);
 		return;
 	}
 
-	debug("%s: gpt-entry at 0x%08X\n", __FUNCTION__, (unsigned int)*pgpt_pte);
+	debug("%s: gpt-entry at %p\n", __func__, gpt_pte);
 
 	printf("Part\tName\t\t\tStart LBA\tEnd LBA\n");
 	for (i = 0; i < le32_to_int(gpt_head->num_partition_entries); i++) {
 
-		if (is_pte_valid(&(*pgpt_pte)[i])) {
+		if (is_pte_valid(&gpt_pte[i])) {
 			printf("%3d\t%-18s\t0x%08llX\t0x%08llX\n", (i + 1),
-				print_efiname(&(*pgpt_pte)[i]),
-				le64_to_int((*pgpt_pte)[i].starting_lba),
-				le64_to_int((*pgpt_pte)[i].ending_lba));
+				print_efiname(&gpt_pte[i]),
+				le64_to_int(gpt_pte[i].starting_lba),
+				le64_to_int(gpt_pte[i].ending_lba));
 		} else {
 			break;	/* Stop at the first non valid PTE */
 		}
 	}
 
 	/* Remember to free pte */
-	if (*pgpt_pte != NULL) {
-		debug("%s: Freeing pgpt_pte\n", __FUNCTION__);
-		free(*pgpt_pte);
-	}
+	free(gpt_pte);
 	return;
 }
 
@@ -162,40 +159,37 @@ int get_partition_info_efi(block_dev_desc_t * dev_desc, int part,
 				disk_partition_t * info)
 {
 	ALLOC_CACHE_ALIGN_BUFFER(gpt_header, gpt_head, 1);
-	gpt_entry **pgpt_pte = NULL;
+	gpt_entry *gpt_pte = NULL;
 
 	/* "part" argument must be at least 1 */
 	if (!dev_desc || !info || part < 1) {
-		printf("%s: Invalid Argument(s)\n", __FUNCTION__);
+		printf("%s: Invalid Argument(s)\n", __func__);
 		return -1;
 	}
 
 	/* This function validates AND fills in the GPT header and PTE */
 	if (is_gpt_valid(dev_desc, GPT_PRIMARY_PARTITION_TABLE_LBA,
-			 gpt_head, pgpt_pte) != 1) {
-		printf("%s: *** ERROR: Invalid GPT ***\n", __FUNCTION__);
+			&(gpt_head), &gpt_pte) != 1) {
+		printf("%s: *** ERROR: Invalid GPT ***\n", __func__);
 		return -1;
 	}
 
 	/* The ulong casting limits the maximum disk size to 2 TB */
-	info->start = (ulong) le64_to_int((*pgpt_pte)[part - 1].starting_lba);
+	info->start = (ulong) le64_to_int(gpt_pte[part - 1].starting_lba);
 	/* The ending LBA is inclusive, to calculate size, add 1 to it */
-	info->size = ((ulong)le64_to_int((*pgpt_pte)[part - 1].ending_lba) + 1)
+	info->size = ((ulong)le64_to_int(gpt_pte[part - 1].ending_lba) + 1)
 		     - info->start;
 	info->blksz = GPT_BLOCK_SIZE;
 
 	sprintf((char *)info->name, "%s",
-			print_efiname(&(*pgpt_pte)[part - 1]));
+			print_efiname(&gpt_pte[part - 1]));
 	sprintf((char *)info->type, "U-Boot");
 
-	debug("%s: start 0x%lX, size 0x%lX, name %s", __FUNCTION__,
+	debug("%s: start 0x%lX, size 0x%lX, name %s", __func__,
 		info->start, info->size, info->name);
 
 	/* Remember to free pte */
-	if (*pgpt_pte != NULL) {
-		debug("%s: Freeing pgpt_pte\n", __FUNCTION__);
-		free(*pgpt_pte);
-	}
+	free(gpt_pte);
 	return 0;
 }
 
@@ -271,7 +265,7 @@ static int is_gpt_valid(block_dev_desc_t * dev_desc, unsigned long long lba,
 	unsigned long long lastlba;
 
 	if (!dev_desc || !pgpt_head) {
-		printf("%s: Invalid Argument(s)\n", __FUNCTION__);
+		printf("%s: Invalid Argument(s)\n", __func__);
 		return 0;
 	}
 
@@ -349,9 +343,7 @@ static int is_gpt_valid(block_dev_desc_t * dev_desc, unsigned long long lba,
 			le32_to_int(pgpt_head->partition_entry_array_crc32),
 			calc_crc32);
 
-		if (*pgpt_pte != NULL) {
-			free(*pgpt_pte);
-		}
+		free(*pgpt_pte);
 		return 0;
 	}
 
@@ -375,14 +367,14 @@ static gpt_entry *alloc_read_gpt_entries(block_dev_desc_t * dev_desc,
 	gpt_entry *pte = NULL;
 
 	if (!dev_desc || !pgpt_head) {
-		printf("%s: Invalid Argument(s)\n", __FUNCTION__);
+		printf("%s: Invalid Argument(s)\n", __func__);
 		return NULL;
 	}
 
 	count = le32_to_int(pgpt_head->num_partition_entries) *
 		le32_to_int(pgpt_head->sizeof_partition_entry);
 
-	debug("%s: count = %lu * %lu = %u\n", __FUNCTION__,
+	debug("%s: count = %lu * %lu = %u\n", __func__,
 		le32_to_int(pgpt_head->num_partition_entries),
 		le32_to_int(pgpt_head->sizeof_partition_entry), count);
 
@@ -393,7 +385,7 @@ static gpt_entry *alloc_read_gpt_entries(block_dev_desc_t * dev_desc,
 
 	if (count == 0 || pte == NULL) {
 		printf("%s: ERROR: Can't allocate 0x%X bytes for GPT Entries\n",
-			__FUNCTION__, count);
+			__func__, count);
 		return NULL;
 	}
 
@@ -421,7 +413,7 @@ static int is_pte_valid(gpt_entry * pte)
 	efi_guid_t unused_guid;
 
 	if (!pte) {
-		printf("%s: Invalid Argument(s)\n", __FUNCTION__);
+		printf("%s: Invalid Argument(s)\n", __func__);
 		return 0;
 	}
 
@@ -433,7 +425,7 @@ static int is_pte_valid(gpt_entry * pte)
 	if (memcmp(pte->partition_type_guid.b, unused_guid.b,
 		sizeof(unused_guid.b)) == 0) {
 
-		debug("%s: Found an unused PTE GUID at 0x%08X\n", __FUNCTION__,
+		debug("%s: Found an unused PTE GUID at 0x%08X\n", __func__,
 		(unsigned int)pte);
 
 		return 0;

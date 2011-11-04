@@ -44,7 +44,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
 
 #define CONFIG_BOARD_EARLY_INIT_F
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_MXC_GPIO
 
 #define CONFIG_MXC_UART
@@ -59,8 +59,9 @@
 #define CONFIG_SYS_I2C_SLAVE            0xfe
 
 /* PMIC Configs */
-#define CONFIG_FSL_PMIC
-#define CONFIG_FSL_PMIC_I2C
+#define CONFIG_PMIC
+#define CONFIG_PMIC_I2C
+#define CONFIG_PMIC_FSL
 #define CONFIG_SYS_FSL_PMIC_I2C_ADDR    8
 
 /* MMC Configs */

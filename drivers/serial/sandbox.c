@@ -30,6 +30,7 @@
 
 int serial_init(void)
 {
+	os_tty_raw(0);
 	return 0;
 }
 
@@ -44,14 +45,13 @@ void serial_putc(const char ch)
 
 void serial_puts(const char *str)
 {
-	while (*str)
-		serial_putc(*str++);
+	os_write(1, str, strlen(str));
 }
 
 int serial_getc(void)
 {
 	char buf;
-	int count;
+	ssize_t count;
 
 	count = os_read(0, &buf, 1);
 	return count == 1 ? buf : 0;

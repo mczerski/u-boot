@@ -35,27 +35,59 @@
 #define _E1000_HW_H_
 
 #include <common.h>
+#include <linux/list.h>
 #include <malloc.h>
 #include <net.h>
 #include <netdev.h>
 #include <asm/io.h>
 #include <pci.h>
 
-#define E1000_ERR(args...) printf("e1000: " args)
+#ifdef CONFIG_E1000_SPI
+#include <spi.h>
+#endif
+
+#define E1000_ERR(NIC, fmt, args...) \
+	printf("e1000: %s: ERROR: " fmt, (NIC)->name ,##args)
 
 #ifdef E1000_DEBUG
-#define E1000_DBG(args...)	printf("e1000: " args)
-#define DEBUGOUT(fmt,args...) printf(fmt ,##args)
-#define DEBUGFUNC()	   printf("%s\n", __FUNCTION__);
+#define E1000_DBG(NIC, fmt, args...) \
+	printf("e1000: %s: DEBUG: " fmt, (NIC)->name ,##args)
+#define DEBUGOUT(fmt, args...)	printf(fmt ,##args)
+#define DEBUGFUNC()		printf("%s\n", __func__);
 #else
-#define E1000_DBG(args...)
-#define DEBUGFUNC()
-#define DEBUGOUT(fmt,args...)
+#define E1000_DBG(HW, args...)	do { } while (0)
+#define DEBUGFUNC()		do { } while (0)
+#define DEBUGOUT(fmt, args...)	do { } while (0)
 #endif
+
+/* I/O wrapper functions */
+#define E1000_WRITE_REG(a, reg, value) \
+	writel((value), ((a)->hw_addr + E1000_##reg))
+#define E1000_READ_REG(a, reg) \
+	readl((a)->hw_addr + E1000_##reg)
+#define E1000_WRITE_REG_ARRAY(a, reg, offset, value) \
+	writel((value), ((a)->hw_addr + E1000_##reg + ((offset) << 2)))
+#define E1000_READ_REG_ARRAY(a, reg, offset) \
+	readl((a)->hw_addr + E1000_##reg + ((offset) << 2))
+#define E1000_WRITE_FLUSH(a) \
+	do { E1000_READ_REG(a, STATUS); } while (0)
 
 /* Forward declarations of structures used by the shared code */
 struct e1000_hw;
 struct e1000_hw_stats;
+
+/* Internal E1000 helper functions */
+struct e1000_hw *e1000_find_card(unsigned int cardnum);
+int32_t e1000_acquire_eeprom(struct e1000_hw *hw);
+void e1000_standby_eeprom(struct e1000_hw *hw);
+void e1000_release_eeprom(struct e1000_hw *hw);
+void e1000_raise_ee_clk(struct e1000_hw *hw, uint32_t *eecd);
+void e1000_lower_ee_clk(struct e1000_hw *hw, uint32_t *eecd);
+
+#ifdef CONFIG_E1000_SPI
+int do_e1000_spi(cmd_tbl_t *cmdtp, struct e1000_hw *hw,
+		int argc, char * const argv[]);
+#endif
 
 typedef enum {
 	FALSE = 0,
@@ -112,11 +144,6 @@ typedef enum {
 	e1000_100_half = 2,
 	e1000_100_full = 3
 } e1000_speed_duplex_type;
-
-typedef enum {
-	e1000_lan_a = 0,
-	e1000_lan_b = 1
-} e1000_lan_loc;
 
 /* Flow Control Settings */
 typedef enum {
@@ -1052,6 +1079,13 @@ typedef enum {
 
 /* Structure containing variables used by the shared code (e1000_hw.c) */
 struct e1000_hw {
+	struct list_head list_node;
+	struct eth_device *nic;
+#ifdef CONFIG_E1000_SPI
+	struct spi_slave spi;
+#endif
+	unsigned int cardnum;
+
 	pci_dev_t pdev;
 	uint8_t *hw_addr;
 	e1000_mac_type mac_type;
@@ -1059,7 +1093,6 @@ struct e1000_hw {
 	uint32_t phy_init_script;
 	uint32_t txd_cmd;
 	e1000_media_type media_type;
-	e1000_lan_loc lan_loc;
 	e1000_fc_type fc;
 	e1000_bus_type bus_type;
 #if 0

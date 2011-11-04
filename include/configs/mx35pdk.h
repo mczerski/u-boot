@@ -42,7 +42,7 @@
 #define CONFIG_SYS_64BIT_VSPRINTF
 
 #define CONFIG_BOARD_EARLY_INIT_F
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs */
 #define CONFIG_REVISION_TAG
@@ -69,8 +69,9 @@
 /*
  * PMIC Configs
  */
-#define CONFIG_FSL_PMIC
-#define CONFIG_FSL_PMIC_I2C
+#define CONFIG_PMIC
+#define CONFIG_PMIC_I2C
+#define CONFIG_PMIC_FSL
 #define CONFIG_SYS_FSL_PMIC_I2C_ADDR	0x08
 
 /*

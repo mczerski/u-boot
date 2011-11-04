@@ -142,9 +142,6 @@ unexport CDPATH
 SUBDIR_TOOLS = tools
 SUBDIR_EXAMPLES = examples/standalone examples/api
 SUBDIRS = $(SUBDIR_TOOLS)
-ifndef CONFIG_SANDBOX
-SUBDIRS += $(SUBDIR_EXAMPLES)
-endif
 
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
 
@@ -156,6 +153,10 @@ ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
 all:
 sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
+
+ifndef CONFIG_SANDBOX
+SUBDIRS += $(SUBDIR_EXAMPLES)
+endif
 
 # load ARCH, BOARD, and CPU configuration
 include $(obj)include/config.mk
@@ -289,6 +290,9 @@ LIBS += lib/libfdt/libfdt.o
 LIBS += api/libapi.o
 LIBS += post/libpost.o
 
+ifeq ($(SOC),am33xx)
+LIBS += $(CPUDIR)/omap-common/libomap-common.o
+endif
 ifeq ($(SOC),omap3)
 LIBS += $(CPUDIR)/omap-common/libomap-common.o
 endif
@@ -317,7 +321,7 @@ else
 PLATFORM_LIBGCC = -L $(USE_PRIVATE_LIBGCC) -lgcc
 endif
 else
-PLATFORM_LIBGCC = -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
+PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
 endif
 PLATFORM_LIBS += $(PLATFORM_LIBGCC)
 export PLATFORM_LIBS

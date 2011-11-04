@@ -79,7 +79,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
 
 #define CONFIG_BOARD_EARLY_INIT_F
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 /*
  * Hardware drivers
@@ -124,11 +124,14 @@
 #endif
 
 /* SPI PMIC */
-#define CONFIG_FSL_PMIC
+#define CONFIG_PMIC
+#define CONFIG_PMIC_SPI
+#define CONFIG_PMIC_FSL
 #define CONFIG_FSL_PMIC_BUS		0
 #define CONFIG_FSL_PMIC_CS		(0 | 120 << 8)
 #define CONFIG_FSL_PMIC_CLK		25000000
 #define CONFIG_FSL_PMIC_MODE		(SPI_MODE_0 | SPI_CS_HIGH)
+#define CONFIG_FSL_PMIC_BITLEN	32
 #define CONFIG_RTC_MC13783
 #endif
 

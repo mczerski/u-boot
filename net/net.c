@@ -215,7 +215,9 @@ volatile uchar *NetRxPackets[PKTBUFSRX];
 
 /* Current RX packet handler */
 static rxhand_f *packetHandler;
+#ifdef CONFIG_CMD_TFTPPUT
 static rxhand_icmp_f *packet_icmp_handler;	/* Current ICMP rx handler */
+#endif
 /* Current timeout handler */
 static thand_f *timeHandler;
 /* Time base value */
@@ -244,7 +246,6 @@ int		NetArpWaitTry;
 
 void ArpRequest(void)
 {
-	int i;
 	volatile uchar *pkt;
 	ARP_t *arp;
 
@@ -266,11 +267,8 @@ void ArpRequest(void)
 	memcpy(&arp->ar_data[0], NetOurEther, 6);
 	/* source IP addr */
 	NetWriteIP((uchar *) &arp->ar_data[6], NetOurIP);
-	for (i = 10; i < 16; ++i) {
-		/* dest ET addr = 0 */
-		arp->ar_data[i] = 0;
-	}
-
+	/* dest ET addr = 0 */
+	memset(&arp->ar_data[10], '\0', 6);
 	if ((NetArpWaitPacketIP & NetOurSubnetMask) !=
 	    (NetOurIP & NetOurSubnetMask)) {
 		if (NetOurGatewayIP == 0) {
@@ -309,6 +307,36 @@ void ArpTimeoutCheck(void)
 			ArpRequest();
 		}
 	}
+}
+
+/*
+ * Check if autoload is enabled. If so, use either NFS or TFTP to download
+ * the boot file.
+ */
+void net_auto_load(void)
+{
+	const char *s = getenv("autoload");
+
+	if (s != NULL) {
+		if (*s == 'n') {
+			/*
+			 * Just use BOOTP/RARP to configure system;
+			 * Do not use TFTP to load the bootfile.
+			 */
+			NetState = NETLOOP_SUCCESS;
+			return;
+		}
+#if defined(CONFIG_CMD_NFS)
+		if (strcmp(s, "NFS") == 0) {
+			/*
+			 * Use NFS to load the bootfile.
+			 */
+			NfsStart();
+			return;
+		}
+#endif
+	}
+	TftpStart(TFTPGET);
 }
 
 static void NetInitLoop(enum proto_t protocol)
@@ -576,9 +604,11 @@ restart:
 	}
 
 done:
+#ifdef CONFIG_CMD_TFTPPUT
 	/* Clear out the handlers */
 	NetSetHandler(NULL);
 	net_set_icmp_handler(NULL);
+#endif
 	return ret;
 }
 
@@ -653,10 +683,12 @@ NetSetHandler(rxhand_f *f)
 	packetHandler = f;
 }
 
+#ifdef CONFIG_CMD_TFTPPUT
 void net_set_icmp_handler(rxhand_icmp_f *f)
 {
 	packet_icmp_handler = f;
 }
+#endif
 
 void
 NetSetTimeout(ulong iv, thand_f *f)
@@ -1397,10 +1429,12 @@ static void receive_icmp(IP_t *ip, int len, IPaddr_t src_ip, Ethernet_t *et)
 		break;
 #endif
 	default:
+#ifdef CONFIG_CMD_TFTPPUT
 		if (packet_icmp_handler)
 			packet_icmp_handler(icmph->type, icmph->code,
 				ntohs(ip->udp_dst), src_ip, ntohs(ip->udp_src),
 				icmph->un.data, ntohs(ip->udp_len));
+#endif
 		break;
 	}
 }

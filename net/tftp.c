@@ -198,7 +198,7 @@ store_block(unsigned block, uchar *src, unsigned len)
 }
 
 /* Clear our state ready for a new transfer */
-void new_transfer(void)
+static void new_transfer(void)
 {
 	TftpLastBlock = 0;
 	TftpBlockWrap = 0;
@@ -332,8 +332,12 @@ TftpSend(void)
 	case STATE_SEND_WRQ:
 		xp = pkt;
 		s = (ushort *)pkt;
+#ifdef CONFIG_CMD_TFTPPUT
 		*s++ = htons(TftpState == STATE_SEND_RRQ ? TFTP_RRQ :
 			TFTP_WRQ);
+#else
+		*s++ = htons(TFTP_RRQ);
+#endif
 		pkt = (uchar *)s;
 		strcpy((char *)pkt, tftp_filename);
 		pkt += strlen(tftp_filename) + 1;
@@ -421,7 +425,7 @@ TftpSend(void)
 			 TftpOurPort, len);
 }
 
-
+#ifdef CONFIG_CMD_TFTPPUT
 static void icmp_handler(unsigned type, unsigned code, unsigned dest,
 			 IPaddr_t sip, unsigned src, uchar *pkt, unsigned len)
 {
@@ -430,6 +434,7 @@ static void icmp_handler(unsigned type, unsigned code, unsigned dest,
 		restart("TFTP server died");
 	}
 }
+#endif
 
 static void
 TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
@@ -729,7 +734,12 @@ void TftpStart(enum proto_t protocol)
 
 	printf("Using %s device\n", eth_get_name());
 	printf("TFTP %s server %pI4; our IP address is %pI4",
-	       protocol == TFTPPUT ? "to" : "from", &TftpRemoteIP, &NetOurIP);
+#ifdef CONFIG_CMD_TFTPPUT
+	       protocol == TFTPPUT ? "to" : "from",
+#else
+		"from",
+#endif
+		&TftpRemoteIP, &NetOurIP);
 
 	/* Check if we need to send across this subnet */
 	if (NetOurGatewayIP && NetOurSubnetMask) {
@@ -771,8 +781,9 @@ void TftpStart(enum proto_t protocol)
 
 	NetSetTimeout(TftpTimeoutMSecs, TftpTimeout);
 	NetSetHandler(TftpHandler);
+#ifdef CONFIG_CMD_TFTPPUT
 	net_set_icmp_handler(icmp_handler);
-
+#endif
 	TftpRemotePort = WELL_KNOWN_PORT;
 	TftpTimeoutCount = 0;
 	/* Use a pseudo-random port unless a specific port is set */
