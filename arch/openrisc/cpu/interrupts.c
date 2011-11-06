@@ -21,9 +21,9 @@
 #include <asm/types.h>
 #include <asm/ptrace.h>
 #include <asm/system.h>
+#include <asm/openrisc_exc.h>
 #include <common.h>
 
-extern void exception_install_handler(int, void (*)(void));
 extern void _interrupt_handler(void);
 
 extern unsigned long _interrupt_handler_table;

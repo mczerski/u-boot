@@ -24,6 +24,7 @@
  */
 
 #include <asm/system.h>
+#include <asm/openrisc_exc.h>
 #include <common.h>
 
 static ulong timestamp;
@@ -35,8 +36,6 @@ static ulong timestamp;
 /* how many cycles per us */
 #define TIMER_CYCLES_US       (CONFIG_SYS_CLK_FREQ/1000000uL)
 
-extern void exception_install_handler(int, void (*)(void));
-
 void timer_isr(void)
 {
 	timestamp += TIMER_TIMESTAMP_INC;
@@ -47,7 +46,7 @@ void timer_isr(void)
 int timer_init(void)
 {
 	/* Install timer exception handler */
-	exception_install_handler(5, timer_isr);
+	exception_install_handler(EXC_TIMER, timer_isr);
 
 	/* Set up the timer for the first expiration. */
 	timestamp = 0;
