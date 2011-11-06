@@ -27,7 +27,7 @@ LIB	= $(obj)lib$(CPU).o
 
 START	= start.o
 SOBJS-y	= exception_handler.o interrupt_handler.o
-COBJS-y	= cache.o cpu.o exception.o interrupts.o
+COBJS-y	= cache.o cpu.o exceptions.o interrupts.o
 
 SRCS	:= $(START:.o=.S) $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
