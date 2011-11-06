@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+
 #include <asm/system.h>
 #include <common.h>
 #include <stdio_dev.h>
@@ -32,6 +33,16 @@ void exception_install_handler(int exception, void (*handler)(void))
 		return;
 
 	handler_table[exception] = (ulong)handler;
+}
+
+void exception_free_handler(int exception)
+{
+	ulong *handler_table = &_exception_handler_table;
+
+	if (exception < 0 || exception > 31)
+		return;
+
+	handler_table[exception] = 0;
 }
 
 void exception_hang(int vect, unsigned long addr)
