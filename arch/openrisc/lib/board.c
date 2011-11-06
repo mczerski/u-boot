@@ -125,12 +125,12 @@ void board_init(void)
 #endif
 
 #ifdef CONFIG_CMD_NAND
-	puts("NAND:   ");
+	puts("NAND:  ");
 	nand_init();
 #endif
 
 #ifdef CONFIG_GENERIC_MMC
-	puts("MMC:    ");
+	puts("MMC:   ");
 	mmc_initialize(bd);
 #endif
 
@@ -151,7 +151,7 @@ void board_init(void)
 
 #if defined(CONFIG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
-	puts("NET:    ");
+	puts("NET:   ");
 #endif
 	eth_initialize(bd);
 #endif

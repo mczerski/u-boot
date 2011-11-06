@@ -82,22 +82,22 @@ int checkboard(void)
 
 	if ( agc == RTU_lite_511 )
 	{
-  		printf("BOARD:  AAC Microtec RTU lite 511 (EM)\n");
+  		printf("BOARD: AAC Microtec RTU lite 511 (EM)\n");
 	}
 
 	if ( agc == RTU_lite_512 )
 	{
-  		printf("BOARD:  AAC Microtec RTU lite 512 (FM)\n");
+  		printf("BOARD: AAC Microtec RTU lite 512 (FM)\n");
 	}
 
 	if ( agc == uRTU_311 )
 	{
-  		printf("BOARD:  AAC Microtec uRTU 311 (EM)\n");
+  		printf("BOARD: AAC Microtec uRTU 311 (EM)\n");
 	}
 
 	if ( agc == uRTU_312 )
 	{
-  		printf("BOARD:  AAC Microtec uRTU 312 (FM)\n");
+  		printf("BOARD: AAC Microtec uRTU 312 (FM)\n");
 	}
 
 	return 0;

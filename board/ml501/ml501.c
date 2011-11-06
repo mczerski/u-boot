@@ -32,7 +32,7 @@ int board_early_init_f(void)
 
 int checkboard(void)
 {
-	printf("BOARD : %s\n", CONFIG_BOARD_NAME);
+	printf("BOARD: %s\n", CONFIG_BOARD_NAME);
 	return 0;
 }
 
