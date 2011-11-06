@@ -81,7 +81,7 @@ int checkicache(void)
 	iccfgr = mfspr(SPR_ICCFGR);
 	cache_ways = 1 << (iccfgr & SPR_ICCFGR_NCW);
 	cache_set_size = 1 << ((iccfgr & SPR_ICCFGR_NCS) >> 3);
-	cache_block_size = 16 << ((iccfgr & SPR_ICCFGR_CBS) >> 7);
+	cache_block_size = (iccfgr & SPR_ICCFGR_CBS) ? 32 : 16;
 
 	return (cache_set_size * cache_ways * cache_block_size);
 }
@@ -101,7 +101,7 @@ int checkdcache(void)
 	dccfgr = mfspr(SPR_DCCFGR);
 	cache_ways = 1 << (dccfgr & SPR_DCCFGR_NCW);
 	cache_set_size = 1 << ((dccfgr & SPR_DCCFGR_NCS) >> 3);
-	cache_block_size = 16 << ((dccfgr & SPR_DCCFGR_CBS) >> 7);
+	cache_block_size = (dccfgr & SPR_DCCFGR_CBS) ? 32 : 16;
 
 	return cache_set_size * cache_ways * cache_block_size;
 }
