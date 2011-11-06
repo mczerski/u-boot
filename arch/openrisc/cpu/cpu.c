@@ -22,14 +22,101 @@
  */
 
 #include <asm/system.h>
+#include <asm/openrisc_exc.h>
 #include <common.h>
+
+static volatile int illegal_instruction;
+
+void illegal_instruction_handler(void)
+{
+	ulong *epcr = (ulong *)mfspr(SPR_EPCR_BASE);
+
+	/* skip over the illegal instruction */
+	mtspr(SPR_EPCR_BASE, (ulong)(epcr++));
+	illegal_instruction = 1;
+}
+
+void checkinstructions()
+{
+	volatile ulong ra = 1, rb = 2, rc;
+
+	exception_install_handler(EXC_ILLEGAL_INSTR,
+				illegal_instruction_handler);
+
+	illegal_instruction = 0;
+	asm("l.mul %0,%1,%2" : "=r" (rc) : "r" (ra), "r" (rb));
+	printf("           Hardware multiplier: %s\n",
+		illegal_instruction ? "no" : "yes");
+
+	illegal_instruction = 0;
+	asm("l.div %0,%1,%2" : "=r" (rc) : "r" (ra), "r" (rb));
+	printf("           Hardware divider: %s\n",
+		illegal_instruction ? "no" : "yes");
+
+	exception_free_handler(EXC_ILLEGAL_INSTR);
+
+}
 
 int checkcpu(void)
 {
-	puts("CPU:    OpenRISC\n");
-	printf("DCACHE: %d bytes\n", checkdcache());
-	printf("ICACHE: %d bytes\n", checkicache());
-	/* TODO - add more info here */
+	ulong upr = mfspr(SPR_UPR);
+	ulong vr = mfspr(SPR_VR);
+	ulong iccfgr = mfspr(SPR_ICCFGR);
+	ulong dccfgr = mfspr(SPR_DCCFGR);
+	ulong cpucfgr = mfspr(SPR_CPUCFGR);
+	uint ver = (vr & SPR_VR_VER) >> 24;
+	uint rev = vr & SPR_VR_REV;
+	uint block_size;
+	uint ways;
+
+	printf("CPU:   OpenRISC-%x00 (rev %d) @ %d MHz\n",
+		ver, rev, (CONFIG_SYS_CLK_FREQ / 1000000));
+
+	if (upr & SPR_UPR_DCP) {
+		block_size = (dccfgr & SPR_DCCFGR_CBS) ? 32 : 16;
+		ways = 1 << (dccfgr & SPR_DCCFGR_NCW);
+		printf("       D-Cache: %d bytes, %d bytes/line, %d way(s)\n",
+		       checkdcache(), block_size, ways);
+	} else {
+		printf("       D-Cache: no\n");
+	}
+
+	if (upr & SPR_UPR_ICP) {
+		block_size = (iccfgr & SPR_ICCFGR_CBS) ? 32 : 16;
+		ways = 1 << (iccfgr & SPR_ICCFGR_NCW);
+		printf("       I-Cache: %d bytes, %d bytes/line, %d way(s)\n",
+		       checkicache(), block_size, ways);
+	} else {
+		printf("       I-Cache: no\n");
+	}
+
+	printf("       MAC unit: %s\n",
+		(upr & SPR_UPR_MP) ? "yes" : "no");
+	printf("       Debug unit: %s\n",
+		(upr & SPR_UPR_DUP) ? "yes" : "no");
+	printf("       Performance counters: %s\n",
+		(upr & SPR_UPR_PCUP) ? "yes" : "no");
+	printf("       Power management: %s\n",
+		(upr & SPR_UPR_PMP) ? "yes" : "no");
+	printf("       Interrupt controller: %s\n",
+		(upr & SPR_UPR_PICP) ? "yes" : "no");
+	printf("       Timer: %s\n",
+		(upr & SPR_UPR_TTP) ? "yes" : "no");
+	printf("       Custom unit(s): %s\n",
+		(upr & SPR_UPR_CUP) ? "yes" : "no");
+
+	printf("       Supported instructions:\n");
+	printf("           ORBIS32: %s\n",
+		(cpucfgr & SPR_CPUCFGR_OB32S) ? "yes" : "no");
+	printf("           ORBIS64: %s\n",
+		(cpucfgr & SPR_CPUCFGR_OB64S) ? "yes" : "no");
+	printf("           ORFPX32: %s\n",
+		(cpucfgr & SPR_CPUCFGR_OF32S) ? "yes" : "no");
+	printf("           ORFPX64: %s\n",
+		(cpucfgr & SPR_CPUCFGR_OF64S) ? "yes" : "no");
+
+	checkinstructions();
+
 	return 0;
 }
 
