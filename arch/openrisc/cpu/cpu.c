@@ -120,11 +120,6 @@ int checkcpu(void)
 	return 0;
 }
 
-int cpu_init(void)
-{
-	return 0;
-}
-
 int cleanup_before_linux(void)
 {
 	disable_interrupts();
@@ -137,10 +132,5 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	disable_interrupts();
 	__reset();
-	return 0;
-}
-
-int cpu_eth_init(bd_t *bis)
-{
 	return 0;
 }
