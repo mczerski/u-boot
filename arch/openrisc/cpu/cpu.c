@@ -36,7 +36,7 @@ void illegal_instruction_handler(void)
 	illegal_instruction = 1;
 }
 
-void checkinstructions()
+void checkinstructions(void)
 {
 	volatile ulong ra = 1, rb = 2, rc;
 
