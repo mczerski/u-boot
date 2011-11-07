@@ -70,6 +70,7 @@
  * TIMER
  */
 #define CONFIG_SYS_HZ			1000
+#define CONFIG_SYS_OPENRISC_TMR_HZ	100
 
 /*
  * Memory organisation:

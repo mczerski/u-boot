@@ -30,9 +30,11 @@
 static ulong timestamp;
 
 /* how many counter cycles in a jiffy */
-#define TIMER_COUNTER_CYCLES  (CONFIG_SYS_CLK_FREQ/CONFIG_SYS_HZ)
+#define TIMER_COUNTER_CYCLES  (CONFIG_SYS_CLK_FREQ/CONFIG_SYS_OPENRISC_TMR_HZ)
 /* how many ms elapses between each timer interrupt */
-#define TIMER_TIMESTAMP_INC   (1000/CONFIG_SYS_HZ)
+#define TIMER_TIMESTAMP_INC   (1000/CONFIG_SYS_OPENRISC_TMR_HZ)
+/* how many cycles per ms */
+#define TIMER_CYCLES_MS       (CONFIG_SYS_CLK_FREQ/1000)
 /* how many cycles per us */
 #define TIMER_CYCLES_US       (CONFIG_SYS_CLK_FREQ/1000000uL)
 
@@ -68,9 +70,14 @@ void reset_timer(void)
 		(TIMER_COUNTER_CYCLES & SPR_TTMR_TP));
 }
 
+/*
+ * The timer value in ms is calculated by taking the
+ * value accumulated by full timer revolutions plus the value
+ * accumulated in this period
+ */
 ulong get_timer(ulong base)
 {
-	return (timestamp - base);
+	return (timestamp + mfspr(SPR_TTCR)/TIMER_CYCLES_MS - base);
 }
 
 void set_timer(ulong t)
