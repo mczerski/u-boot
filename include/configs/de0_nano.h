@@ -50,7 +50,7 @@
 # define CONFIG_SYS_NS16550_SERIAL
 # define CONFIG_SYS_NS16550_REG_SIZE	1
 # define CONFIG_CONS_INDEX		1
-# define CONFIG_SYS_NS16550_COM1 	(0x90000000)
+# define CONFIG_SYS_NS16550_COM1	(0x90000000)
 # define CONFIG_SYS_NS16550_CLK		CONFIG_SYS_CLK_FREQ
 
 #define CONFIG_BAUDRATE			CONFIG_SYS_UART_BAUD
@@ -63,11 +63,24 @@
  */
 #define CONFIG_SYS_HZ			1000
 
-
-
+/*
+ * Memory organisation:
+ *
+ * RAM start ---------------------------
+ *           | ...                     |
+ *           ---------------------------
+ *           | Stack                   |
+ *           ---------------------------
+ *           | Global data             |
+ *           ---------------------------
+ *           | Environment             |
+ *           ---------------------------
+ *           | Monitor                 |
+ * RAM end   ---------------------------
+ */
 /* We're running in RAM */
 #define CONFIG_MONITOR_IS_IN_RAM
-#define CONFIG_SYS_MONITOR_LEN	0x40000 /* Reserve 256k */
+#define CONFIG_SYS_MONITOR_LEN	0x40000	/* Reserve 256k */
 #define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_SDRAM_BASE + \
 				CONFIG_SYS_SDRAM_SIZE - \
 				CONFIG_SYS_MONITOR_LEN)
