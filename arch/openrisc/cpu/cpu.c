@@ -63,11 +63,14 @@ int checkcpu(void)
 	ulong vr = mfspr(SPR_VR);
 	ulong iccfgr = mfspr(SPR_ICCFGR);
 	ulong dccfgr = mfspr(SPR_DCCFGR);
+	ulong immucfgr = mfspr(SPR_IMMUCFGR);
+	ulong dmmucfgr = mfspr(SPR_DMMUCFGR);
 	ulong cpucfgr = mfspr(SPR_CPUCFGR);
 	uint ver = (vr & SPR_VR_VER) >> 24;
 	uint rev = vr & SPR_VR_REV;
 	uint block_size;
 	uint ways;
+	uint sets;
 
 	printf("CPU:   OpenRISC-%x00 (rev %d) @ %d MHz\n",
 		ver, rev, (CONFIG_SYS_CLK_FREQ / 1000000));
@@ -88,6 +91,24 @@ int checkcpu(void)
 		       checkicache(), block_size, ways);
 	} else {
 		printf("       I-Cache: no\n");
+	}
+
+	if (upr & SPR_UPR_DMP) {
+		sets = 1 << ((dmmucfgr & SPR_DMMUCFGR_NTS) >> 2);
+		ways = (dmmucfgr & SPR_DMMUCFGR_NTW) + 1;
+		printf("       DMMU: %d sets, %d way(s)\n",
+		       sets, ways);
+	} else {
+		printf("       DMMU: no\n");
+	}
+
+	if (upr & SPR_UPR_IMP) {
+		sets = 1 << ((immucfgr & SPR_IMMUCFGR_NTS) >> 2);
+		ways = (immucfgr & SPR_IMMUCFGR_NTW) + 1;
+		printf("       IMMU: %d sets, %d way(s)\n",
+		       sets, ways);
+	} else {
+		printf("       IMMU: no\n");
 	}
 
 	printf("       MAC unit: %s\n",
