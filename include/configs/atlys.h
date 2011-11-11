@@ -79,6 +79,31 @@
 #define CONFIG_SYS_OPENRISC_TMR_HZ	100
 
 /*
+ * SPI
+ */
+#define CONFIG_SPI
+#define CONFIG_OC_SIMPLE_SPI
+#define CONFIG_SYS_SIMPLE_SPI_LIST		\
+{						\
+	{					\
+		.freq = CONFIG_SYS_CLK_FREQ,	\
+		.base = 0xb0000000,		\
+	}					\
+}
+#define CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_STMICRO
+#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
+#define CONFIG_SF_DEFAULT_SPEED		CONFIG_SYS_CLK_FREQ
+
+/*
+ * GPIO
+ */
+#define CONFIG_SYS_GPIO_BASE		0x91000000
+#define CONFIG_SYS_GPIO_WIDTH		8
+
+
+/*
  * Memory organisation:
  *
  * RAM start ---------------------------
@@ -100,8 +125,11 @@
 				CONFIG_SYS_SDRAM_SIZE - \
 				CONFIG_SYS_MONITOR_LEN)
 
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SIZE		0x20000 /* Total Size of Environment, 128KB */
+#define CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_SPI_MODE	SPI_MODE_0
+#define CONFIG_ENV_OFFSET	0x180000
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* 256KB */
+#define CONFIG_ENV_SIZE		0x20000	/* Total Size of Environment, 128KB */
 #define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SIZE)
 
 /*
@@ -142,6 +170,9 @@
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_BSP
+
+#define CONFIG_CMD_SPI
+#define CONFIG_CMD_SF
 
 #define CONFIG_CMD_MII
 #define CONFIG_NET_MULTI
