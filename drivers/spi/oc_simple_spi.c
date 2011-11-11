@@ -15,7 +15,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -30,18 +30,18 @@
 #include <spi.h>
 #include <asm/gpio.h>
 
-#define SIMPLE_SPI_SPCR 0x00
-#define SIMPLE_SPI_SPSR 0x01
-#define SIMPLE_SPI_SPDR 0x02
-#define SIMPLE_SPI_SPER 0x03
-#define SIMPLE_SPI_SSEL 0x04
+#define SIMPLE_SPI_SPCR		0x00
+#define SIMPLE_SPI_SPSR		0x01
+#define SIMPLE_SPI_SPDR		0x02
+#define SIMPLE_SPI_SPER		0x03
+#define SIMPLE_SPI_SSEL		0x04
 
-#define SIMPLE_SPI_SPCR_SPIE  (1 << 7)
-#define SIMPLE_SPI_SPCR_SPE   (1 << 6)
-#define SIMPLE_SPI_SPCR_MSTR  (1 << 4)
-#define SIMPLE_SPI_SPCR_CPOL  (1 << 3)
-#define SIMPLE_SPI_SPCR_CPHA  (1 << 2)
-#define SIMPLE_SPI_SPCR_SPR   0x03
+#define SIMPLE_SPI_SPCR_SPIE	(1 << 7)
+#define SIMPLE_SPI_SPCR_SPE	(1 << 6)
+#define SIMPLE_SPI_SPCR_MSTR	(1 << 4)
+#define SIMPLE_SPI_SPCR_CPOL	(1 << 3)
+#define SIMPLE_SPI_SPCR_CPHA	(1 << 2)
+#define SIMPLE_SPI_SPCR_SPR	0x03
 
 #define SIMPLE_SPI_SPSR_SPIF	(1 << 7)
 #define SIMPLE_SPI_SPSR_WCOL	(1 << 6)
@@ -50,18 +50,20 @@
 #define SIMPLE_SPI_SPSR_RFFULL	(1 << 1)
 #define SIMPLE_SPI_SPSR_RFEMPTY	(1 << 0)
 
-#define SIMPLE_SPI_SPER_ICNT  0xc0
-#define SIMPLE_SPI_SPER_ESPR  0x03
+#define SIMPLE_SPI_SPER_ICNT 	0xc0
+#define SIMPLE_SPI_SPER_ESPR 	0x03
 
 #ifndef CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE
 	#define CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE 0x00
 #endif
+
 
 struct simple_spi_host {
 	uint base;
 	uint freq;
 	uint baudwidth;
 };
+
 static const struct simple_spi_host simple_spi_host_list[] =
 	CONFIG_SYS_SIMPLE_SPI_LIST;
 
@@ -72,31 +74,30 @@ struct simple_spi_slave {
 	uint baud;
 	uint flg;
 };
+
 #define to_simple_spi_slave(s) container_of(s, struct simple_spi_slave, slave)
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	#ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+#ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	return bus < ARRAY_SIZE(simple_spi_host_list);
-	# else
+# else
 	return bus < ARRAY_SIZE(simple_spi_host_list) && gpio_is_valid(cs);
-	#endif
+#endif
 }
 
 void spi_cs_activate(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 #ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
-	uint base  = simple_spi->host->base;
+	uint base = simple_spi->host->base;
 	char flags = readb(base + SIMPLE_SPI_SSEL) | (1<<slave->cs);
 
 	debug("%s: SSEL: %x\n", __func__, flags);
 	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
-	unsigned int cs = slave->cs;
-
-	gpio_set_value(cs, simple_spi->flg);
-	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(cs));
+	gpio_set_value(slave->cs, simple_spi->flg);
+	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(slave->cs));
 #endif
 }
 
@@ -104,16 +105,14 @@ void spi_cs_deactivate(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 #ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
-	uint base  = simple_spi->host->base;
+	uint base = simple_spi->host->base;
 	char flags = readb(base + SIMPLE_SPI_SSEL) & ~(1<<slave->cs);
 
 	debug("%s: SSEL: %x\n", __func__, flags);
 	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
-	unsigned int cs = slave->cs;
-
-	gpio_set_value(cs, !simple_spi->flg);
-	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(cs));
+	gpio_set_value(slave->cs, !simple_spi->flg);
+	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(slave->cs));
 #endif
 }
 
@@ -122,15 +121,16 @@ void spi_set_speed(struct spi_slave *slave, uint hz)
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 	const struct simple_spi_host *host = simple_spi->host;
 	int i;
+
 	/* (ESPR << 8 | SPR) max allowed value is 11 */
 	for (i = 0; i <= 11; i++) {
 		if ((host->freq >> (1+i)) <= hz)
 			break;
 	}
 
-	/* 
-	 * The order of the values of clkdivider in 
-	 * simple_spi might seem a bit strange, 
+	/*
+	 * The order of the values of clkdivider in
+	 * simple_spi might seem a bit strange,
 	 * but the reason is to keep SPR compatible with M68HC11
 	 */
 	switch (i) {
@@ -149,7 +149,7 @@ void spi_set_speed(struct spi_slave *slave, uint hz)
 	}
 
 	debug("%s: speed %u actual %u\n", __func__, hz,
-	      host->freq >> (i + 1));
+		host->freq >> (i + 1));
 }
 
 void spi_init(void)
@@ -157,7 +157,7 @@ void spi_init(void)
 }
 
 struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
-				  unsigned int hz, unsigned int mode)
+				unsigned int hz, unsigned int mode)
 {
 	struct simple_spi_slave *simple_spi;
 
@@ -182,13 +182,14 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	spi_set_speed(&simple_spi->slave, hz);
 
 	debug("%s: bus:%i cs:%i base:%lx mode:0x%x\n",
-	      __func__, bus, cs, simple_spi->host->base, mode);
+		__func__, bus, cs, simple_spi->host->base, mode);
 	return &simple_spi->slave;
 }
 
 void spi_free_slave(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
+
 #ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	gpio_free(slave->cs);
 #endif
@@ -198,7 +199,7 @@ void spi_free_slave(struct spi_slave *slave)
 int spi_claim_bus(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
-	uint base  = simple_spi->host->base;
+	uint base = simple_spi->host->base;
 	u8 spcr = 0;
 	u8 sper = 0;
 
@@ -229,7 +230,7 @@ int spi_claim_bus(struct spi_slave *slave)
 void spi_release_bus(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
-	uint base  = simple_spi->host->base;
+	uint base = simple_spi->host->base;
 	u8 spcr = readb(base + SIMPLE_SPI_SPCR);
 
 	/* Disable SPI */
@@ -242,7 +243,7 @@ void spi_release_bus(struct spi_slave *slave)
 }
 
 int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
-	     void *din, unsigned long flags)
+		void *din, unsigned long flags)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 	uint base = simple_spi->host->base;
@@ -253,8 +254,10 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	uint rxbytes = 0;
 	uint txbytes = 0;
 	int ret = 0;
-	debug("%s: bus:%i cs:%i bitlen:%i bytes:%i flags:%lx\n", __func__,
-		slave->bus, slave->cs, bitlen, bytes, flags);
+
+	debug("%s: bus:%i cs:%i bitlen:%i bytes:%i flags:%lx\n",
+		__func__, slave->bus, slave->cs, bitlen, bytes, flags);
+
 	if (bitlen == 0)
 		goto done;
 
@@ -276,7 +279,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 
 	while(rxbytes < bytes) {
 		spsr = readb(base + SIMPLE_SPI_SPSR);
-		if (!(spsr &  SIMPLE_SPI_SPSR_RFEMPTY)) {
+		if (!(spsr & SIMPLE_SPI_SPSR_RFEMPTY)) {
 			if (rxp)
 				*rxp++ = readb(base + SIMPLE_SPI_SPDR);
 			else
@@ -287,7 +290,8 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 			if (txp)
 				writeb(*txp++, base + SIMPLE_SPI_SPDR);
 			else
-				writeb(CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE, base + SIMPLE_SPI_SPDR);
+				writeb(CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE,
+					base + SIMPLE_SPI_SPDR);
 			txbytes++;
 		}
 
