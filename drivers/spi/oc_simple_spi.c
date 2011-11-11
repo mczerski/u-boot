@@ -90,6 +90,7 @@ void spi_cs_activate(struct spi_slave *slave)
 	uint base  = simple_spi->host->base;
 	char flags = readb(base + SIMPLE_SPI_SSEL) | (1<<slave->cs);
 
+	debug("%s: SSEL: %x\n", __func__, flags);
 	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
 	unsigned int cs = slave->cs;
@@ -106,6 +107,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 	uint base  = simple_spi->host->base;
 	char flags = readb(base + SIMPLE_SPI_SSEL) & ~(1<<slave->cs);
 
+	debug("%s: SSEL: %x\n", __func__, flags);
 	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
 	unsigned int cs = slave->cs;
@@ -179,8 +181,8 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	simple_spi->flg = mode & SPI_CS_HIGH ? 1 : 0;
 	spi_set_speed(&simple_spi->slave, hz);
 
-	debug("%s: bus:%i cs:%i base:%lx\n", __func__,
-		bus, cs, simple_spi->host->base);
+	debug("%s: bus:%i cs:%i base:%lx mode:0x%x\n",
+	      __func__, bus, cs, simple_spi->host->base, mode);
 	return &simple_spi->slave;
 }
 
@@ -200,8 +202,9 @@ int spi_claim_bus(struct spi_slave *slave)
 	u8 spcr = 0;
 	u8 sper = 0;
 
-#ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	debug("%s: bus:%i cs:%i\n", __func__, slave->bus, slave->cs);
+
+#ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	gpio_direction_output(slave->cs, !simple_spi->flg);
 #endif
 
