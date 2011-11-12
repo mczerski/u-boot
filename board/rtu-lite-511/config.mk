@@ -1,9 +1,5 @@
 #
-# (C) Copyright 2005, Psyent Corporation <www.psyent.com>
-# Scott McNutt <smcnutt@psyent.com>
-#
-# See file CREDITS for list of people who contributed to this
-# project.
+# (C) Copyright 2011, Julius Baxter <julius@opencores.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -21,14 +17,8 @@
 # MA 02111-1307 USA
 #
 
-# we get text_base from board config header, so do not use this
-#CONFIG_SYS_TEXT_BASE = do-not-use-me
-
 PLATFORM_CPPFLAGS += -mhard-mul -mhard-div
-PLATFORM_CPPFLAGS += -I$(TOPDIR)/board/$(VENDOR)/include
 
 ifeq ($(debug),1)
 PLATFORM_CPPFLAGS += -DDEBUG
 endif
-
-LDSCRIPT := $(SRCTREE)/board/$(VENDOR)/$(BOARD)/u-boot.lds
