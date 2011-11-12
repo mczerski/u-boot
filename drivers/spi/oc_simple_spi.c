@@ -30,12 +30,6 @@
 #include <spi.h>
 #include <asm/gpio.h>
 
-#define SIMPLE_SPI_SPCR		0x00
-#define SIMPLE_SPI_SPSR		0x01
-#define SIMPLE_SPI_SPDR		0x02
-#define SIMPLE_SPI_SPER		0x03
-#define SIMPLE_SPI_SSEL		0x04
-
 #define SIMPLE_SPI_SPCR_SPIE	(1 << 7)
 #define SIMPLE_SPI_SPCR_SPE	(1 << 6)
 #define SIMPLE_SPI_SPCR_MSTR	(1 << 4)
@@ -57,6 +51,13 @@
 	#define CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE 0x00
 #endif
 
+struct simple_spi_regs {
+	u8 spcr;
+	u8 spsr;
+	u8 spdr;
+	u8 sper;
+	u8 ssel;
+};
 
 struct simple_spi_host {
 	uint base;
@@ -90,11 +91,11 @@ void spi_cs_activate(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 #ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
-	uint base = simple_spi->host->base;
-	char flags = readb(base + SIMPLE_SPI_SSEL) | (1<<slave->cs);
+	struct simple_spi_regs *regs = (void *)simple_spi->host->base;
+	u8 flags = readb(&regs->ssel) | (1 << slave->cs);
 
+	writeb(flags, &regs->ssel);
 	debug("%s: SSEL: %x\n", __func__, flags);
-	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
 	gpio_set_value(slave->cs, simple_spi->flg);
 	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(slave->cs));
@@ -105,11 +106,11 @@ void spi_cs_deactivate(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
 #ifdef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
-	uint base = simple_spi->host->base;
-	char flags = readb(base + SIMPLE_SPI_SSEL) & ~(1<<slave->cs);
+	struct simple_spi_regs *regs = (void *)simple_spi->host->base;
+	u8 flags = readb(&regs->ssel) & ~(1 << slave->cs);
 
+	writeb(flags, &regs->ssel);
 	debug("%s: SSEL: %x\n", __func__, flags);
-	writeb(flags, base + SIMPLE_SPI_SSEL);
 #else
 	gpio_set_value(slave->cs, !simple_spi->flg);
 	debug("%s: SPI_CS_GPIO:%x\n", __func__, gpio_get_value(slave->cs));
@@ -199,7 +200,7 @@ void spi_free_slave(struct spi_slave *slave)
 int spi_claim_bus(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
-	uint base = simple_spi->host->base;
+	struct simple_spi_regs *regs = (void *)simple_spi->host->base;
 	u8 spcr = 0;
 	u8 sper = 0;
 
@@ -221,8 +222,8 @@ int spi_claim_bus(struct spi_slave *slave)
 
 	spcr |= (simple_spi->baud & SIMPLE_SPI_SPCR_SPR);
 	sper |= (simple_spi->baud & SIMPLE_SPI_SPER_ESPR);
-	writeb(spcr, base + SIMPLE_SPI_SPCR);
-	writeb(sper, base + SIMPLE_SPI_SPER);
+	writeb(spcr, &regs->spcr);
+	writeb(sper, &regs->sper);
 
 	return 0;
 }
@@ -230,12 +231,12 @@ int spi_claim_bus(struct spi_slave *slave)
 void spi_release_bus(struct spi_slave *slave)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
-	uint base = simple_spi->host->base;
-	u8 spcr = readb(base + SIMPLE_SPI_SPCR);
+	struct simple_spi_regs *regs = (void *)simple_spi->host->base;
+	u8 spcr = readb(&regs->spcr);
 
 	/* Disable SPI */
 	spcr &= ~SIMPLE_SPI_SPCR_SPE;
-	writeb(spcr, base + SIMPLE_SPI_SPCR);
+	writeb(spcr, &regs->spcr);
 #ifndef CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
 	gpio_direction_input(slave->cs);
 	debug("%s: bus:%i cs:%i\n", __func__, slave->bus, slave->cs);
@@ -246,7 +247,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		void *din, unsigned long flags)
 {
 	struct simple_spi_slave *simple_spi = to_simple_spi_slave(slave);
-	uint base = simple_spi->host->base;
+	struct simple_spi_regs *regs = (void *)simple_spi->host->base;
 	const u8 *txp = dout;
 	u8 *rxp = din;
 	u8 spsr;
@@ -268,30 +269,30 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	}
 
 	/* empty read fifo */
-	while(!(readb(base + SIMPLE_SPI_SPSR) & SIMPLE_SPI_SPSR_RFEMPTY)) {
+	while(!(readb(&regs->spsr) & SIMPLE_SPI_SPSR_RFEMPTY)) {
 		if (ctrlc())
 			return -1;
-		readb(base + SIMPLE_SPI_SPDR);
+		readb(&regs->spdr);
 	}
 
 	if (flags & SPI_XFER_BEGIN)
 		spi_cs_activate(slave);
 
 	while(rxbytes < bytes) {
-		spsr = readb(base + SIMPLE_SPI_SPSR);
+		spsr = readb(&regs->spsr);
 		if (!(spsr & SIMPLE_SPI_SPSR_RFEMPTY)) {
 			if (rxp)
-				*rxp++ = readb(base + SIMPLE_SPI_SPDR);
+				*rxp++ = readb(&regs->spdr);
 			else
-				readb(base + SIMPLE_SPI_SPDR);
+				readb(&regs->spdr);
 			rxbytes++;
 		}
 		if (!(spsr & SIMPLE_SPI_SPSR_WFFULL) && txbytes < bytes) {
 			if (txp)
-				writeb(*txp++, base + SIMPLE_SPI_SPDR);
+				writeb(*txp++, &regs->spdr);
 			else
 				writeb(CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE,
-					base + SIMPLE_SPI_SPDR);
+					&regs->spdr);
 			txbytes++;
 		}
 
