@@ -462,12 +462,12 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #elif defined(CONFIG_OPENRISC)
 
-int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	bd_t *bd = gd->bd;
-	print_num ("memstart",		(ulong)bd->bi_memstart);
-	print_lnum ("memsize",		(u64)bd->bi_memsize);
-	printf ("baudrate    = %lu bps\n", bd->bi_baudrate);
+	print_num("memstart",		(ulong)bd->bi_memstart);
+	print_lnum("memsize",		(u64)bd->bi_memsize);
+	printf("baudrate    = %lu bps\n", bd->bi_baudrate);
 
 	return 0;
 }
