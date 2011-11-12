@@ -60,7 +60,7 @@ struct simple_spi_regs {
 };
 
 struct simple_spi_host {
-	uint base;
+	ulong base;
 	uint freq;
 	uint baudwidth;
 };
@@ -182,8 +182,8 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	simple_spi->flg = mode & SPI_CS_HIGH ? 1 : 0;
 	spi_set_speed(&simple_spi->slave, hz);
 
-	debug("%s: bus:%i cs:%i base:%lx mode:0x%x\n",
-		__func__, bus, cs, simple_spi->host->base, mode);
+	debug("%s: bus:%i cs:%i base:%p mode:0x%x\n",
+		__func__, bus, cs, (void *)simple_spi->host->base, mode);
 	return &simple_spi->slave;
 }
 
