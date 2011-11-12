@@ -1,7 +1,6 @@
 #
 # (C) Copyright 2001-2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-# (C) Copyright 2010, Thomas Chou <thomas@wytron.com.tw>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -23,13 +22,10 @@
 #
 
 include $(TOPDIR)/config.mk
-ifneq ($(OBJTREE),$(SRCTREE))
-$(shell mkdir -p $(obj)../common)
-endif
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS-y	:= $(BOARD).o cmd_aac.o sensors.o id.o power.o systeminfo.o
+COBJS-y	:= $(BOARD).o
 
 SRCS	:= $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS-y))
