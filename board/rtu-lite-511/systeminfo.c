@@ -28,14 +28,14 @@
 #include <errno.h>
 
 
-// AAC AGC lookup table.
+/* AAC AGC lookup table */
 
 #define RTU_lite_511 	0x31
 #define RTU_lite_512 	0x32
 #define uRTU_311 	0x21
 #define uRTU_312 	0x22
 
-//Get the AGC which is located on GPIO 44 to GPIO 51
+/* Get the AGC which is located on GPIO 44 to GPIO 51 */
 
 #define agc_bit0 	44
 #define agc_bit1 	45
@@ -50,7 +50,7 @@ void aac_agc_info(void)
 {
 	ushort agc = 0x00;
 
-	// Define AGC IO
+	/* Define AGC IO */
 	gpio_direction_input(agc_bit0);
 	gpio_direction_input(agc_bit1);
 	gpio_direction_input(agc_bit2);
@@ -60,7 +60,7 @@ void aac_agc_info(void)
 	gpio_direction_input(agc_bit6);
 	gpio_direction_input(agc_bit7);
 
-	//Get the AGC which is located on GPIO 44 to GPIO 51
+	/* Get the AGC which is located on GPIO 44 to GPIO 51 */
 	agc = agc + gpio_get_value(agc_bit0) * 1;
 	agc = agc + gpio_get_value(agc_bit1) * 2;
 	agc = agc + gpio_get_value(agc_bit2) * 4;
@@ -69,55 +69,45 @@ void aac_agc_info(void)
 	agc = agc + gpio_get_value(agc_bit5) * 32;
 	agc = agc + gpio_get_value(agc_bit6) * 64;
 	agc = agc + gpio_get_value(agc_bit7) * 128;
-  	printf("Device hardware product id: 0x%x\n", agc);
-	
-	if ( agc == RTU_lite_511 )
-	{
-  		printf("Product identified as AAC Microtec RTU lite 511 (EM)\n");
-	}
+	printf("Device hardware product id: 0x%x\n", agc);
 
+	if ( agc == RTU_lite_511 )
+		printf("Product identified as AAC Microtec RTU lite 511 (EM)\n");
 	if ( agc == RTU_lite_512 )
-	{
-  		printf("Product identified as AAC Microtec RTU lite 512 (FM)\n");
-	}
+		printf("Product identified as AAC Microtec RTU lite 512 (FM)\n");
 
 	if ( agc == uRTU_311 )
-	{
-  		printf("Product identified as AAC Microtec uRTU 311 (EM)\n");
-	}
+		printf("Product identified as AAC Microtec uRTU 311 (EM)\n");
 
 	if ( agc == uRTU_312 )
-	{
-  		printf("Product identified as AAC Microtec uRTU 312 (FM)\n");
-	}
+		printf("Product identified as AAC Microtec uRTU 312 (FM)\n");
 }
 
-void aac_cpu_info()
+void aac_cpu_info(void)
 {
 	unsigned long vr = mfspr(SPR_VR);
-	
+	unsigned version = (vr & SPR_VR_VER) >> SPR_VR_VER_OFF;
+	unsigned long cpucfgr = mfspr(SPR_CPUCFGR);
+	unsigned long upr = mfspr(SPR_UPR);
+
 	printf("\nOpenRISC 1000 Architecture - CPU information (Version Register)\n");
-	
-	printf("Version:\t0x%2x",(vr & SPR_VR_VER) >> SPR_VR_VER_OFF);
+
+	printf("Version:\t0x%2x", version);
 	printf("\tConfig:\t%d",(vr & SPR_VR_CFG) >> SPR_VR_CFG_OFF);
 	printf("\tRevision:\t%d",(vr & SPR_VR_REV));
 	printf("\n");
 
-	unsigned version = (vr & SPR_VR_VER) >> SPR_VR_VER_OFF;
-
-	if ( (version >= 45) && (version <= 50) )
+	if ((version >= 45) && (version <= 50))
 		puts("CPU: AAC certified OpenRISC Fault Tolerant\n");
 
-	if ( (version >= 30) && (version <= 35) ) 
+	if ((version >= 30) && (version <= 35))
 		puts("CPU: AAC certified OpenRISC\n");
-	
+
 	if (version < 30)
 		puts("CPU: uncertified OpenRISC\n");
 
 	printf("\nCPU Capabilities:\n");
 
-	unsigned long cpucfgr = mfspr(SPR_CPUCFGR);
-	
 	printf("OpenRISC 1000 Architecture - ORBIS32: %ssupported\n",
 	       ((cpucfgr & SPR_CPUCFGR_OB32S)==SPR_CPUCFGR_OB32S) ?"":"not ");
 
@@ -126,7 +116,7 @@ void aac_cpu_info()
 
 	printf("\nOptional instructions supported by this system\n");
 
-	// Multiply
+	/* Multiply */
 
 	errno = 0;
 
@@ -137,7 +127,7 @@ void aac_cpu_info()
 	if (errno >= 0)
 		printf("Multiply (l.mul)\n");
 
-	// Divide
+	/* Divide */
 
 	errno = 0;
 
@@ -147,7 +137,7 @@ void aac_cpu_info()
 	if (errno >= 0)
 		printf("Divide (l.div)\n");
 
-	// FF1
+	/* FF1 */
 
 	errno = 0;
 
@@ -157,7 +147,7 @@ void aac_cpu_info()
 	if (errno >= 0)
 		printf("Find First 1 (l.ff1)\n");
 
-	// FL1
+	/* FL1 */
 
 	errno = 0;
 
@@ -167,7 +157,7 @@ void aac_cpu_info()
 	if (errno >= 0)
 		printf("Find Last 1 (l.fl1)\n");
 
-	// lfrem
+	/* lfrem */
 
 	errno = 0;
 
@@ -177,19 +167,13 @@ void aac_cpu_info()
 	if (errno >= 0)
 		printf("Floating remainder (lf.frem.s)\n");
 
-
 	/* Unit present register */
-	unsigned long upr;
-	upr = mfspr(SPR_UPR);
-
-	if (!(SPR_UPR_UP & upr))
-	{
+	if (!(SPR_UPR_UP & upr)) {
 		printf("UPR not present. Cannot determine present units\n");
 		return 1;
 	}
-	
+
 	printf("\nOptional CPU near units present in this system:\n");
-	
 
 	if (upr & SPR_UPR_DCP)
 		printf("Data Cache\n");
@@ -225,11 +209,10 @@ void aac_cpu_info()
 		printf("Context units\n");
 }
 
-void do_systeminfo()
+void do_systeminfo(void)
 {
-	// Present AGC related information
+	/* Present AGC related information */
 	aac_agc_info();
- 
-	// Present CPU related information
+	/* Present CPU related information */
 	aac_cpu_info();
 }

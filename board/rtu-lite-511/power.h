@@ -1,2 +1,2 @@
-extern void do_pmin();
-extern void do_pmax();
+extern void do_pmin(void);
+extern void do_pmax(void);

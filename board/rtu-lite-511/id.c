@@ -24,14 +24,14 @@
 #include <common.h>
 #include <asm/gpio.h>
 
-// AAC AGC lookup table.
+/* AAC AGC lookup table */
 
 #define RTU_lite_511 	0x31
 #define RTU_lite_512 	0x32
 #define uRTU_311 	0x21
 #define uRTU_312 	0x22
 
-//Get the AGC which is located on GPIO 44 to GPIO 51
+/* Get the AGC which is located on GPIO 44 to GPIO 51 */
 
 #define agc_bit0 	44
 #define agc_bit1 	45
@@ -42,11 +42,11 @@
 #define agc_bit6 	50
 #define agc_bit7 	51
 
-void do_id()
+void do_id(void)
 {
 	ushort agc = 0x00;
 
-	// Define AGC IO
+	/* Define AGC IO */
 	gpio_direction_input(agc_bit0);
 	gpio_direction_input(agc_bit1);
 	gpio_direction_input(agc_bit2);
@@ -56,7 +56,7 @@ void do_id()
 	gpio_direction_input(agc_bit6);
 	gpio_direction_input(agc_bit7);
 
-	//Get the AGC which is located on GPIO 44 to GPIO 51
+	/* Get the AGC which is located on GPIO 44 to GPIO 51 */
 	agc = agc + gpio_get_value(agc_bit0) * 1;
 	agc = agc + gpio_get_value(agc_bit1) * 2;
 	agc = agc + gpio_get_value(agc_bit2) * 4;
@@ -65,27 +65,18 @@ void do_id()
 	agc = agc + gpio_get_value(agc_bit5) * 32;
 	agc = agc + gpio_get_value(agc_bit6) * 64;
 	agc = agc + gpio_get_value(agc_bit7) * 128;
- 
-  	printf("Device hardware product id: 0x%x\n", agc);
-	
+
+	printf("Device hardware product id: 0x%x\n", agc);
+
 	if ( agc == RTU_lite_511 )
-	{
-  		printf("Product identified as AAC Microtec RTU lite 511 (EM)\n");
-	}
+		printf("Product identified as AAC Microtec RTU lite 511 (EM)\n");
 
 	if ( agc == RTU_lite_512 )
-	{
-  		printf("Product identified as AAC Microtec RTU lite 512 (FM)\n");
-	}
+		printf("Product identified as AAC Microtec RTU lite 512 (FM)\n");
 
 	if ( agc == uRTU_311 )
-	{
-  		printf("Product identified as AAC Microtec uRTU 311 (EM)\n");
-	}
+		printf("Product identified as AAC Microtec uRTU 311 (EM)\n");
 
 	if ( agc == uRTU_312 )
-	{
-  		printf("Product identified as AAC Microtec uRTU 312 (FM)\n");
-	}
-	
+		printf("Product identified as AAC Microtec uRTU 312 (FM)\n");
 }

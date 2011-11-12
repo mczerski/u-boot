@@ -1,1 +1,1 @@
-extern void do_systeminfo();
+extern void do_systeminfo(void);

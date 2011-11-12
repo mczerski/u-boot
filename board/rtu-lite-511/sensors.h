@@ -1,1 +1,1 @@
-extern void do_sensors();
+extern void do_sensors(void);

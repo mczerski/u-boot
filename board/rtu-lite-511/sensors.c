@@ -148,7 +148,7 @@ static float calc_board_v33(ushort raw_data)
         return (3.3 / 1.055 * (float) raw_data * 0.000976563);
 }
 
-void do_sensors()
+void do_sensors(void)
 {
 	struct spi_slave *slave;
 	int i;
