@@ -32,7 +32,7 @@ void illegal_instruction_handler(void)
 	ulong *epcr = (ulong *)mfspr(SPR_EPCR_BASE);
 
 	/* skip over the illegal instruction */
-	mtspr(SPR_EPCR_BASE, (ulong)(epcr++));
+	mtspr(SPR_EPCR_BASE, (ulong)(++epcr));
 	illegal_instruction = 1;
 }
 
