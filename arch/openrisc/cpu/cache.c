@@ -24,15 +24,14 @@
 /* cache line size can be either 16 or 32 bytes */
 static inline unsigned long get_linesize(void)
 {
-	return ((mfspr(SPR_ICCFGR) & SPR_ICCFGR_CBS) ? 32 : 16);
+	return (mfspr(SPR_ICCFGR) & SPR_ICCFGR_CBS) ? 32 : 16;
 }
 
 void flush_dcache_range(unsigned long addr, unsigned long stop)
 {
 	unsigned long linesize = get_linesize();
 
-	while (addr < stop)
-	{
+	while (addr < stop) {
 		mtspr(SPR_DCBFR, addr);
 		addr += linesize;
 	}
@@ -42,8 +41,7 @@ void invalidate_dcache_range(unsigned long addr, unsigned long stop)
 {
 	unsigned long linesize = get_linesize();
 
-	while (addr < stop)
-	{
+	while (addr < stop) {
 		mtspr(SPR_DCBIR, addr);
 		addr += linesize;
 	}
@@ -53,8 +51,7 @@ static void invalidate_icache_range(unsigned long addr, unsigned long stop)
 {
 	unsigned long linesize = get_linesize();
 
-	while (addr < stop)
-	{
+	while (addr < stop) {
 		mtspr(SPR_ICBIR, addr);
 		addr += linesize;
 	}
@@ -68,7 +65,7 @@ void flush_cache(unsigned long addr, unsigned long size)
 
 int icache_status(void)
 {
-	return (mfspr(SPR_SR) & SPR_SR_ICE);
+	return mfspr(SPR_SR) & SPR_SR_ICE;
 }
 
 int checkicache(void)
@@ -83,12 +80,12 @@ int checkicache(void)
 	cache_set_size = 1 << ((iccfgr & SPR_ICCFGR_NCS) >> 3);
 	cache_block_size = (iccfgr & SPR_ICCFGR_CBS) ? 32 : 16;
 
-	return (cache_set_size * cache_ways * cache_block_size);
+	return cache_set_size * cache_ways * cache_block_size;
 }
 
 int dcache_status(void)
 {
-	return (mfspr(SPR_SR) & SPR_SR_DCE);
+	return mfspr(SPR_SR) & SPR_SR_DCE;
 }
 
 int checkdcache(void)

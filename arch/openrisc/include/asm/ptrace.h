@@ -33,7 +33,6 @@ struct pt_regs {
 
 #ifdef __KERNEL__
 #define STACK_FRAME_OVERHEAD  128  /* size of minimum stack frame */
-//#define STACK_FRAME_OVERHEAD  0  /* size of minimum stack frame */
 
 #define instruction_pointer(regs) ((regs)->pc)
 #define user_mode(regs) (((regs)->sr & SPR_SR_SM) == 0)

@@ -96,7 +96,7 @@ void exception_hang(int vect, unsigned long addr)
 		break;
 	}
 	printf("EPCR: 0x%08lx\n", addr);
-	printf("EEAR: 0x%08lx\n", mfspr (SPR_EEAR_BASE));
-	printf("ESR:  0x%08lx\n", mfspr (SPR_ESR_BASE));
+	printf("EEAR: 0x%08lx\n", mfspr(SPR_EEAR_BASE));
+	printf("ESR:  0x%08lx\n", mfspr(SPR_ESR_BASE));
 	hang();
 }

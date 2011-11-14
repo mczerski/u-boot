@@ -28,8 +28,7 @@ static inline void unmap_physmem(void *vaddr, unsigned long flags)
 /*
  * Change virtual addresses to physical addresses
  */
-
-static inline phys_addr_t virt_to_phys(void * vaddr)
+static inline phys_addr_t virt_to_phys(void *vaddr)
 {
 	return (phys_addr_t)(vaddr);
 }
@@ -48,16 +47,16 @@ static inline phys_addr_t virt_to_phys(void * vaddr)
 #define __raw_readw readw
 #define __raw_readl readl
 
-#define writeb(b,addr) ((*(volatile unsigned char *) (addr)) = (b))
-#define writew(b,addr) ((*(volatile unsigned short *) (addr)) = (b))
-#define writel(b,addr) ((*(volatile unsigned int *) (addr)) = (b))
+#define writeb(b, addr) ((*(volatile unsigned char *) (addr)) = (b))
+#define writew(b, addr) ((*(volatile unsigned short *) (addr)) = (b))
+#define writel(b, addr) ((*(volatile unsigned int *) (addr)) = (b))
 #define __raw_writeb writeb
 #define __raw_writew writew
 #define __raw_writel writel
 
-#define memset_io(a,b,c)	memset((void *)(a),(b),(c))
-#define memcpy_fromio(a,b,c)	memcpy((a),(void *)(b),(c))
-#define memcpy_toio(a,b,c)	memcpy((void *)(a),(b),(c))
+#define memset_io(a, b, c)	memset((void *)(a), (b), (c))
+#define memcpy_fromio(a, b, c)	memcpy((a), (void *)(b), (c))
+#define memcpy_toio(a, b, c)	memcpy((void *)(a), (b), (c))
 
 /*
  * Again, OpenRISC does not require mem IO specific function.
@@ -65,13 +64,12 @@ static inline phys_addr_t virt_to_phys(void * vaddr)
 
 
 #define IO_BASE			0x0
-#define IO_SPACE_LIMIT 		0xffffffff
+#define IO_SPACE_LIMIT		0xffffffff
 
-#define inb(port)		(*(volatile unsigned char *) (port+IO_BASE))
-#define outb(value,port)	((*(volatile unsigned char *) (port+IO_BASE)) = (value))	
-
-#define inb_p(port)             inb((port))
-#define outb_p(val, port)       outb((val), (port))
+#define inb(port)		readb((port + IO_BASE))
+#define outb(value, port)	writeb((value), (port + IO_BASE))
+#define inb_p(port)		inb((port))
+#define outb_p(value, port)	outb((value), (port))
 
 /*
  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
@@ -84,13 +82,12 @@ static inline phys_addr_t virt_to_phys(void * vaddr)
  */
 #define xlate_dev_kmem_ptr(p)	p
 
-#define ioread8(addr)           readb(addr)
-#define ioread16(addr)          readw(addr)
-#define ioread32(addr)          readl(addr)
+#define ioread8(addr)		readb(addr)
+#define ioread16(addr)		readw(addr)
+#define ioread32(addr)		readl(addr)
 
-#define iowrite8(v, addr)       writeb((v), (addr))
-#define iowrite16(v, addr)      writew((v), (addr))
-#define iowrite32(v, addr)      writel((v), (addr))
-
+#define iowrite8(v, addr)	writeb((v), (addr))
+#define iowrite16(v, addr)	writew((v), (addr))
+#define iowrite32(v, addr)	writel((v), (addr))
 
 #endif

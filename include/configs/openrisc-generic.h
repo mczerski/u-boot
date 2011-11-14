@@ -61,7 +61,7 @@
  * Ethernet
  */
 #define CONFIG_ETHOC
-#define CONFIG_SYS_ETHOC_BASE 		0x92000000
+#define CONFIG_SYS_ETHOC_BASE		0x92000000
 
 #define CONFIG_BOOTFILE			"boot.img"
 #define CONFIG_LOADADDR			0x100000 /* 1MB mark */

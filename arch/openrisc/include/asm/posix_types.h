@@ -19,7 +19,7 @@ typedef long		__kernel_time_t;
 typedef long		__kernel_suseconds_t;
 typedef long		__kernel_clock_t;
 typedef int		__kernel_daddr_t;
-typedef char *		__kernel_caddr_t;
+typedef char		*__kernel_caddr_t;
 typedef unsigned short	__kernel_uid16_t;
 typedef unsigned short	__kernel_gid16_t;
 typedef unsigned int	__kernel_uid32_t;
@@ -40,18 +40,18 @@ typedef struct {
 
 #if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
 
-#undef	__FD_SET
+#undef __FD_SET
 #define __FD_SET(fd, fd_set) \
-  __set_bit (fd, (void *)&((__kernel_fd_set *)fd_set)->fds_bits)
+	__set_bit(fd, (void *)&((__kernel_fd_set *)fd_set)->fds_bits)
 #undef __FD_CLR
 #define __FD_CLR(fd, fd_set) \
-  __clear_bit (fd, (void *)&((__kernel_fd_set *)fd_set)->fds_bits)
-#undef	__FD_ISSET
+	__clear_bit(fd, (void *)&((__kernel_fd_set *)fd_set)->fds_bits)
+#undef __FD_ISSET
 #define __FD_ISSET(fd, fd_set) \
-  __test_bit (fd, (void *)&((__kernel_fd_set *)fd_set)->fds_bits)
-#undef	__FD_ZERO
+	__test_bit(fd, (void *)&((__kernel_fd_set *)fd_set)->fds_bits)
+#undef __FD_ZERO
 #define __FD_ZERO(fd_set) \
-  memset (fd_set, 0, sizeof (*(fd_set *)fd_set))
+	memset(fd_set, 0, sizeof(*(fd_set *)fd_set))
 
 #endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
 

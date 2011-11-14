@@ -81,7 +81,7 @@ void irq_free_handler(int irq)
 }
 
 #if defined(CONFIG_CMD_IRQ)
-int do_irqinfo(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_irqinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int i;
 	ulong *handler, *arg;
@@ -93,7 +93,7 @@ int do_irqinfo(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	printf("Nr  Routine   Arg\n");
 	printf("-----------------\n");
 
-	for (i=0; i<32; i++) {
+	for (i = 0; i < 32; i++) {
 		if (handler[i])
 			printf("%02d  %08lx  %08lx\n", i,
 				(ulong)handler[i],
@@ -104,6 +104,6 @@ int do_irqinfo(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	}
 	printf("\n");
 
-	return (0);
+	return 0;
 }
 #endif

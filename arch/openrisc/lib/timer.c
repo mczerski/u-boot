@@ -77,7 +77,7 @@ void reset_timer(void)
  */
 ulong get_timer(ulong base)
 {
-	return (timestamp + mfspr(SPR_TTCR)/TIMER_CYCLES_MS - base);
+	return timestamp + mfspr(SPR_TTCR)/TIMER_CYCLES_MS - base;
 }
 
 void set_timer(ulong t)

@@ -61,12 +61,12 @@ int do_bootm_linux(int flag, int argc, char * const argv[],
 	if (ret)
 		return 1;
 
-	show_boot_progress (15);
+	show_boot_progress(15);
 
 	if (!of_flat_tree && argc > 3)
 		of_flat_tree = (char *)simple_strtoul(argv[3], NULL, 16);
 #ifdef DEBUG
-	printf ("## Transferring control to Linux (at address 0x%08lx) " \
+	printf("## Transferring control to Linux (at address 0x%08lx) " \
 				"ramdisk 0x%08lx, FDT 0x%08lx...\n",
 		(ulong) kernel, rd_data_start, (ulong) of_flat_tree);
 #endif

@@ -108,10 +108,9 @@ void board_init(void)
 	bd->bi_baudrate = CONFIG_BAUDRATE;
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
-		WATCHDOG_RESET ();
-		if ((*init_fnc_ptr)() != 0) {
+		WATCHDOG_RESET();
+		if ((*init_fnc_ptr)() != 0)
 			hang();
-		}
 	}
 
 	WATCHDOG_RESET();
@@ -166,10 +165,11 @@ void board_init(void)
 
 /***********************************************************************/
 
-void hang (void)
+void hang(void)
 {
 	disable_interrupts();
 	puts("### ERROR ### Please reset board ###\n");
 	asm("l.nop 0x1"); /* Kill any simulation */
-	for (;;);
+	for (;;)
+		;
 }

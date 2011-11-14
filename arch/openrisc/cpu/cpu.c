@@ -38,18 +38,18 @@ void illegal_instruction_handler(void)
 
 void checkinstructions(void)
 {
-	volatile ulong ra = 1, rb = 2, rc;
+	ulong ra = 1, rb = 1, rc;
 
 	exception_install_handler(EXC_ILLEGAL_INSTR,
 				illegal_instruction_handler);
 
 	illegal_instruction = 0;
-	asm("l.mul %0,%1,%2" : "=r" (rc) : "r" (ra), "r" (rb));
+	asm volatile("l.mul %0,%1,%2" : "=r" (rc) : "r" (ra), "r" (rb));
 	printf("           Hardware multiplier: %s\n",
 		illegal_instruction ? "no" : "yes");
 
 	illegal_instruction = 0;
-	asm("l.div %0,%1,%2" : "=r" (rc) : "r" (ra), "r" (rb));
+	asm volatile("l.div %0,%1,%2" : "=r" (rc) : "r" (ra), "r" (rb));
 	printf("           Hardware divider: %s\n",
 		illegal_instruction ? "no" : "yes");
 
