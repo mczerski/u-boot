@@ -63,13 +63,6 @@
 #define CONFIG_ETHOC
 #define CONFIG_SYS_ETHOC_BASE 		0x92000000
 
-/*
-#define CONFIG_ETHADDR			00:12:34:56:78:9a
-*/
-#define CONFIG_NETMASK  		255.255.0.0
-#define CONFIG_IPADDR   		192.168.255.27 /* board's IP */
-#define CONFIG_GATEWAYIP		192.168.255.254
-#define CONFIG_SERVERIP			192.168.255.100
 #define CONFIG_BOOTFILE			"boot.img"
 #define CONFIG_LOADADDR			0x100000 /* 1MB mark */
 
