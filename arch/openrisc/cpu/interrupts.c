@@ -24,15 +24,36 @@
 #include <asm/openrisc_exc.h>
 #include <common.h>
 
-extern void _interrupt_handler(void);
+struct irq_action {
+	interrupt_handler_t *handler;
+	void *arg;
+	int count;
+};
 
-extern unsigned long _interrupt_handler_table;
-extern unsigned long _interrupt_handler_data_ptr_table;
+static struct irq_action handlers[32];
+
+void interrupt_handler(void)
+{
+	int irq;
+
+	while ((irq = ffs(mfspr(SPR_PICSR)))) {
+		if (handlers[--irq].handler) {
+			handlers[irq].handler(handlers[irq].arg);
+			handlers[irq].count++;
+		} else {
+			/* disable the interrupt */
+			mtspr(SPR_PICMR, mfspr(SPR_PICMR) & ~(1 << irq));
+			printf("Unhandled interrupt: %d\n", irq);
+		}
+		/* clear the interrupt */
+		mtspr(SPR_PICSR, mfspr(SPR_PICSR) & ~(1 << irq));
+	}
+}
 
 int interrupt_init(void)
 {
 	/* install handler for external interrupt exception */
-	exception_install_handler(8, _interrupt_handler);
+	exception_install_handler(EXC_EXT_IRQ, interrupt_handler);
 	/* Enable interrupts in supervisor register */
 	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_IEE);
 
@@ -58,49 +79,39 @@ int disable_interrupts(void)
 
 void irq_install_handler(int irq, interrupt_handler_t *handler, void *arg)
 {
-	ulong *handler_table = &_interrupt_handler_table;
-	ulong *arg_table = &_interrupt_handler_data_ptr_table;
-
 	if (irq < 0 || irq > 31)
 		return;
 
-	handler_table[irq] = (ulong)handler;
-	arg_table[irq] = (ulong)arg;
+	handlers[irq].handler = handler;
+	handlers[irq].arg = arg;
 }
 
 void irq_free_handler(int irq)
 {
-	ulong *handler_table = &_interrupt_handler_table;
-	ulong *arg_table = &_interrupt_handler_data_ptr_table;
-
 	if (irq < 0 || irq > 31)
 		return;
 
-	handler_table[irq] = 0;
-	arg_table[irq] = 0;
+	handlers[irq].handler = 0;
+	handlers[irq].arg = 0;
 }
 
 #if defined(CONFIG_CMD_IRQ)
 int do_irqinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int i;
-	ulong *handler, *arg;
-
-	handler = &_interrupt_handler_table;
-	arg = &_interrupt_handler_data_ptr_table;
 
 	printf("\nInterrupt-Information:\n\n");
-	printf("Nr  Routine   Arg\n");
-	printf("-----------------\n");
+	printf("Nr  Routine   Arg       Count\n");
+	printf("-----------------------------\n");
 
 	for (i = 0; i < 32; i++) {
-		if (handler[i])
-			printf("%02d  %08lx  %08lx\n", i,
-				(ulong)handler[i],
-				(ulong)arg[i]);
-		else
-			printf("%02d  Not set   Not set\n", i);
-
+		if (handlers[i].handler) {
+			printf("%02d  %08lx  %08lx  %d\n",
+				i,
+				(ulong)handlers[i].handler,
+				(ulong)handlers[i].arg,
+				handlers[i].count);
+		}
 	}
 	printf("\n");
 
