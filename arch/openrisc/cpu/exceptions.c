@@ -23,32 +23,29 @@
 #include <stdio_dev.h>
 
 extern void hang(void);
-extern unsigned long _exception_handler_table;
+
+static void (*handlers[32])(void);
 
 void exception_install_handler(int exception, void (*handler)(void))
 {
-	ulong *handler_table = &_exception_handler_table;
-
 	if (exception < 0 || exception > 31)
 		return;
 
-	handler_table[exception] = (ulong)handler;
+	handlers[exception] = handler;
 }
 
 void exception_free_handler(int exception)
 {
-	ulong *handler_table = &_exception_handler_table;
-
 	if (exception < 0 || exception > 31)
 		return;
 
-	handler_table[exception] = 0;
+	handlers[exception] = 0;
 }
 
-void exception_hang(int vect, unsigned long addr)
+static void exception_hang(int vect, ulong addr)
 {
-	printf("Unhandled exception at 0x%x ", vect&0xff00);
-	switch (vect&0xff00) {
+	printf("Unhandled exception at 0x%x ", vect & 0xff00);
+	switch (vect & 0xff00) {
 	case 0x100:
 		puts("(Reset)\n");
 		break;
@@ -99,4 +96,14 @@ void exception_hang(int vect, unsigned long addr)
 	printf("EEAR: 0x%08lx\n", mfspr(SPR_EEAR_BASE));
 	printf("ESR:  0x%08lx\n", mfspr(SPR_ESR_BASE));
 	hang();
+}
+
+void exception_handler(int vect, ulong addr)
+{
+	int exception = vect >> 8;
+
+	if (handlers[exception])
+		handlers[exception]();
+	else
+		exception_hang(vect, addr);
 }
