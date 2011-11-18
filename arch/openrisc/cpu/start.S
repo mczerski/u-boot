@@ -25,13 +25,13 @@
 #define EXCEPTION_STACK_SIZE (128+128)
 
 #define HANDLE_EXCEPTION			\
-	l.addi	r1, r1, -EXCEPTION_STACK_SIZE;	\
-	l.sw	0x1c(r1), r9;			\
-	l.jal	_exception_handler;		\
-	 l.nop;					\
-	l.lwz 	r9, 0x1c(r1);			\
-	l.addi	r1, r1, EXCEPTION_STACK_SIZE;	\
-	l.rfe;					\
+	l.addi	r1, r1, -EXCEPTION_STACK_SIZE	;\
+	l.sw	0x1c(r1), r9			;\
+	l.jal	_exception_handler		;\
+	 l.nop					;\
+	l.lwz 	r9, 0x1c(r1)			;\
+	l.addi	r1, r1, EXCEPTION_STACK_SIZE	;\
+	l.rfe					;\
 	 l.nop
 
 	.section .vectors, "ax"
