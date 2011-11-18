@@ -73,19 +73,19 @@ static void exception_hang(int vect, ulong addr)
 	case 0x900:
 		puts("(D-TLB Miss)\n");
 		break;
-	case 0xA00:
+	case 0xa00:
 		puts("(I-TLB Miss)\n");
 		break;
-	case 0xB00:
+	case 0xb00:
 		puts("(Range)\n");
 		break;
-	case 0xC00:
+	case 0xc00:
 		puts("(System Call)\n");
 		break;
-	case 0xD00:
+	case 0xd00:
 		puts("(Floating Point)\n");
 		break;
-	case 0xE00:
+	case 0xe00:
 		puts("(Trap)\n");
 		break;
 	default:
