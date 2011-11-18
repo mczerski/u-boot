@@ -42,7 +42,7 @@ void exception_free_handler(int exception)
 	handlers[exception] = 0;
 }
 
-static void exception_hang(int vect, ulong addr)
+static void exception_hang(int vect)
 {
 	printf("Unhandled exception at 0x%x ", vect & 0xff00);
 	switch (vect & 0xff00) {
@@ -92,18 +92,18 @@ static void exception_hang(int vect, ulong addr)
 		puts("(Unknown exception)\n");
 		break;
 	}
-	printf("EPCR: 0x%08lx\n", addr);
+	printf("EPCR: 0x%08lx\n", mfspr(SPR_EPCR_BASE));
 	printf("EEAR: 0x%08lx\n", mfspr(SPR_EEAR_BASE));
 	printf("ESR:  0x%08lx\n", mfspr(SPR_ESR_BASE));
 	hang();
 }
 
-void exception_handler(int vect, ulong addr)
+void exception_handler(int vect)
 {
 	int exception = vect >> 8;
 
 	if (handlers[exception])
 		handlers[exception]();
 	else
-		exception_hang(vect, addr);
+		exception_hang(vect);
 }

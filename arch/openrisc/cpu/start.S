@@ -295,12 +295,9 @@ _exception_handler:
 
 	/* Save return address */
 	l.or	r14, r0, r9
-	/* Load address from where the exception occurred into r4 */
-	l.mfspr r4,r0,SPR_EPCR_BASE
-	/* Load Link address into r3 (i.e. vector address) */
-	l.or	r3, r0, r9
+	/* Call exception handler with the link address as argument */
 	l.jal	exception_handler
-	 l.nop
+	 l.or	r3, r0, r14
 	/* Load return address */
 	l.or	r9, r0, r14
 
