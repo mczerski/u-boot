@@ -67,6 +67,7 @@ BIN_FILES-$(CONFIG_CMD_NET) += gen_eth_addr$(SFX)
 BIN_FILES-$(CONFIG_CMD_LOADS) += img2srec$(SFX)
 BIN_FILES-$(CONFIG_XWAY_SWAP_BYTES) += xway-swap-bytes$(SFX)
 BIN_FILES-y += mkimage$(SFX)
+BIN_FILES-$(CONFIG_MX28) += mxsboot$(SFX)
 BIN_FILES-$(CONFIG_NETCONSOLE) += ncb$(SFX)
 BIN_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1$(SFX)
 
@@ -91,6 +92,7 @@ NOPED_OBJ_FILES-y += kwbimage.o
 NOPED_OBJ_FILES-y += imximage.o
 NOPED_OBJ_FILES-y += omapimage.o
 NOPED_OBJ_FILES-y += mkimage.o
+OBJ_FILES-$(CONFIG_MX28) += mxsboot.o
 OBJ_FILES-$(CONFIG_NETCONSOLE) += ncb.o
 NOPED_OBJ_FILES-y += os_support.o
 OBJ_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1.o
@@ -111,8 +113,11 @@ LIBFDT_OBJ_FILES-y += fdt_wip.o
 
 # Generated LCD/video logo
 LOGO_H = $(OBJTREE)/include/bmp_logo.h
+LOGO_DATA_H = $(OBJTREE)/include/bmp_logo_data.h
 LOGO-$(CONFIG_LCD_LOGO) += $(LOGO_H)
+LOGO-$(CONFIG_LCD_LOGO) += $(LOGO_DATA_H)
 LOGO-$(CONFIG_VIDEO_LOGO) += $(LOGO_H)
+LOGO-$(CONFIG_VIDEO_LOGO) += $(LOGO_DATA_H)
 
 ifeq ($(LOGO_BMP),)
 LOGO_BMP= logos/denx.bmp
@@ -206,6 +211,10 @@ $(obj)mpc86x_clk$(SFX):	$(obj)mpc86x_clk.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 
+$(obj)mxsboot$(SFX):	$(obj)mxsboot.o
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
+	$(HOSTSTRIP) $@
+
 $(obj)ncb$(SFX):	$(obj)ncb.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
@@ -236,7 +245,10 @@ else
 endif
 
 $(LOGO_H):	$(obj)bmp_logo $(LOGO_BMP)
-	$(obj)./bmp_logo $(LOGO_BMP) >$@
+	$(obj)./bmp_logo --gen-info $(LOGO_BMP) > $@
+
+$(LOGO_DATA_H):	$(obj)bmp_logo $(LOGO_BMP)
+	$(obj)./bmp_logo --gen-data $(LOGO_BMP) > $@
 
 #########################################################################
 
