@@ -60,7 +60,6 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 extern int cache_init(void);
-extern int timer_init(void);
 
 typedef int (init_fnc_t)(void);
 
