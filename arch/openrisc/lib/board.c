@@ -67,7 +67,7 @@ typedef int (init_fnc_t)(void);
  * Initialization sequence
  */
 
-init_fnc_t *init_sequence[] = {
+static init_fnc_t * const init_sequence[] = {
 	cache_init,
 	timer_init,		/* initialize timer */
 	env_init,
@@ -76,7 +76,6 @@ init_fnc_t *init_sequence[] = {
 	display_options,
 	checkcpu,
 	checkboard,
-	NULL,			/* Terminate this list */
 };
 
 
@@ -84,7 +83,7 @@ init_fnc_t *init_sequence[] = {
 void board_init(void)
 {
 	bd_t *bd;
-	init_fnc_t **init_fnc_ptr;
+	int i;
 
 	gd = (gd_t *)CONFIG_SYS_GBL_DATA_ADDR;
 
@@ -106,9 +105,9 @@ void board_init(void)
 #endif
 	bd->bi_baudrate = CONFIG_BAUDRATE;
 
-	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
+	for (i = 0; i < ARRAY_SIZE(init_sequence); i++) {
 		WATCHDOG_RESET();
-		if ((*init_fnc_ptr)() != 0)
+		if (init_sequence[i]())
 			hang();
 	}
 
