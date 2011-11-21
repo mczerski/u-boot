@@ -172,7 +172,6 @@
 #define CONFIG_CMD_SF
 
 #define CONFIG_CMD_MII
-#define CONFIG_NET_MULTI
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING
 
