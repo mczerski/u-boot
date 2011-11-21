@@ -54,7 +54,6 @@ static void checkinstructions(void)
 		illegal_instruction ? "no" : "yes");
 
 	exception_free_handler(EXC_ILLEGAL_INSTR);
-
 }
 
 int checkcpu(void)
