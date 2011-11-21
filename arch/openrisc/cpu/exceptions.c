@@ -22,7 +22,6 @@
 #include <stdio_dev.h>
 #include <asm/system.h>
 
-extern void hang(void);
 
 static void (*handlers[32])(void);
 
