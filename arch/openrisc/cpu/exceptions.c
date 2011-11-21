@@ -22,6 +22,23 @@
 #include <stdio_dev.h>
 #include <asm/system.h>
 
+static const char * const excp_table[] = {
+	"Unknown exception",
+	"Reset",
+	"Bus Error",
+	"Data Page Fault",
+	"Instruction Page Fault",
+	"Tick Timer",
+	"Alignment",
+	"Illegal Instruction",
+	"External Interrupt",
+	"D-TLB Miss",
+	"I-TLB Miss",
+	"Range",
+	"System Call",
+	"Floating Point",
+	"Trap",
+};
 
 static void (*handlers[32])(void);
 
@@ -44,53 +61,13 @@ void exception_free_handler(int exception)
 static void exception_hang(int vect)
 {
 	printf("Unhandled exception at 0x%x ", vect & 0xff00);
-	switch (vect & 0xff00) {
-	case 0x100:
-		puts("(Reset)\n");
-		break;
-	case 0x200:
-		puts("(Bus Error)\n");
-		break;
-	case 0x300:
-		puts("(Data Page Fault)\n");
-		break;
-	case 0x400:
-		puts("(Instruction Page Fault)\n");
-		break;
-	case 0x500:
-		puts("(Tick Timer)\n");
-		break;
-	case 0x600:
-		puts("(Alignment)\n");
-		break;
-	case 0x700:
-		puts("(Illegal Instruction)\n");
-		break;
-	case 0x800:
-		puts("(External Interrupt)\n");
-		break;
-	case 0x900:
-		puts("(D-TLB Miss)\n");
-		break;
-	case 0xa00:
-		puts("(I-TLB Miss)\n");
-		break;
-	case 0xb00:
-		puts("(Range)\n");
-		break;
-	case 0xc00:
-		puts("(System Call)\n");
-		break;
-	case 0xd00:
-		puts("(Floating Point)\n");
-		break;
-	case 0xe00:
-		puts("(Trap)\n");
-		break;
-	default:
-		puts("(Unknown exception)\n");
-		break;
-	}
+
+	vect = ((vect >> 16) & 0xff);
+	if (vect < ARRAY_SIZE(excp_table))
+		printf("(%s)\n", excp_table[vect]);
+	else
+		printf("(%s)\n", excp_table[0]);
+
 	printf("EPCR: 0x%08lx\n", mfspr(SPR_EPCR_BASE));
 	printf("EEAR: 0x%08lx\n", mfspr(SPR_EEAR_BASE));
 	printf("ESR:  0x%08lx\n", mfspr(SPR_ESR_BASE));
