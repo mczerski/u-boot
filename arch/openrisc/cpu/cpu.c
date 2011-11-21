@@ -21,9 +21,9 @@
  * MA 02111-1307 USA
  */
 
+#include <common.h>
 #include <asm/system.h>
 #include <asm/openrisc_exc.h>
-#include <common.h>
 
 static volatile int illegal_instruction;
 

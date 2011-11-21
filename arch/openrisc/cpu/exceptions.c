@@ -18,9 +18,9 @@
  * MA 02111-1307 USA
  */
 
-#include <asm/system.h>
 #include <common.h>
 #include <stdio_dev.h>
+#include <asm/system.h>
 
 extern void hang(void);
 

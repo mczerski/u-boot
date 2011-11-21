@@ -18,9 +18,9 @@
  * MA 02111-1307 USA
  */
 
+#include <config.h>
 #include <asm-offsets.h>
 #include <asm/spr-defs.h>
-#include <config.h>
 
 #define EXCEPTION_STACK_SIZE (128+128)
 

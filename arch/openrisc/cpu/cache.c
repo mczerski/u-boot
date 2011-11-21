@@ -18,8 +18,8 @@
  * MA 02111-1307 USA
  */
 
-#include <asm/system.h>
 #include <common.h>
+#include <asm/system.h>
 
 /* cache line size can be either 16 or 32 bytes */
 static inline unsigned long get_linesize(void)

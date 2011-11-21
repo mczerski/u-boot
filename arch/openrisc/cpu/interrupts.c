@@ -18,11 +18,11 @@
  * MA 02111-1307 USA
  */
 
+#include <common.h>
 #include <asm/types.h>
 #include <asm/ptrace.h>
 #include <asm/system.h>
 #include <asm/openrisc_exc.h>
-#include <common.h>
 
 struct irq_action {
 	interrupt_handler_t *handler;
