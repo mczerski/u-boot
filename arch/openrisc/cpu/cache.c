@@ -21,39 +21,33 @@
 #include <common.h>
 #include <asm/system.h>
 
-/* cache line size can be either 16 or 32 bytes */
-static inline unsigned long get_linesize(void)
-{
-	return (mfspr(SPR_ICCFGR) & SPR_ICCFGR_CBS) ? 32 : 16;
-}
-
 void flush_dcache_range(unsigned long addr, unsigned long stop)
 {
-	unsigned long linesize = get_linesize();
+	ulong block_size = (mfspr(SPR_DCCFGR) & SPR_DCCFGR_CBS) ? 32 : 16;
 
 	while (addr < stop) {
 		mtspr(SPR_DCBFR, addr);
-		addr += linesize;
+		addr += block_size;
 	}
 }
 
 void invalidate_dcache_range(unsigned long addr, unsigned long stop)
 {
-	unsigned long linesize = get_linesize();
+	ulong block_size = (mfspr(SPR_DCCFGR) & SPR_DCCFGR_CBS) ? 32 : 16;
 
 	while (addr < stop) {
 		mtspr(SPR_DCBIR, addr);
-		addr += linesize;
+		addr += block_size;
 	}
 }
 
 static void invalidate_icache_range(unsigned long addr, unsigned long stop)
 {
-	unsigned long linesize = get_linesize();
+	ulong block_size = (mfspr(SPR_ICCFGR) & SPR_ICCFGR_CBS) ? 32 : 16;
 
 	while (addr < stop) {
 		mtspr(SPR_ICBIR, addr);
-		addr += linesize;
+		addr += block_size;
 	}
 }
 
