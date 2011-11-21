@@ -27,7 +27,7 @@
 
 static volatile int illegal_instruction;
 
-void illegal_instruction_handler(void)
+static void illegal_instruction_handler(void)
 {
 	ulong *epcr = (ulong *)mfspr(SPR_EPCR_BASE);
 
@@ -36,7 +36,7 @@ void illegal_instruction_handler(void)
 	illegal_instruction = 1;
 }
 
-void checkinstructions(void)
+static void checkinstructions(void)
 {
 	ulong ra = 1, rb = 1, rc;
 
