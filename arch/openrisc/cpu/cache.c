@@ -100,14 +100,14 @@ int checkdcache(void)
 void dcache_enable(void)
 {
 	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_DCE);
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
 }
 
 void dcache_disable(void)
@@ -118,14 +118,14 @@ void dcache_disable(void)
 void icache_enable(void)
 {
 	mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_ICE);
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
-	asm("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
+	asm volatile("l.nop");
 }
 
 void icache_disable(void)
