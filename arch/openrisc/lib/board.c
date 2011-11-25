@@ -61,13 +61,10 @@ DECLARE_GLOBAL_DATA_PTR;
 
 extern int cache_init(void);
 
-typedef int (init_fnc_t)(void);
-
 /*
  * Initialization sequence
  */
-
-static init_fnc_t * const init_sequence[] = {
+static int (* const init_sequence[])(void) = {
 	cache_init,
 	timer_init,		/* initialize timer */
 	env_init,
