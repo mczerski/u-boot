@@ -62,7 +62,7 @@ static void exception_hang(int vect)
 {
 	printf("Unhandled exception at 0x%x ", vect & 0xff00);
 
-	vect = ((vect >> 16) & 0xff);
+	vect = ((vect >> 8) & 0xff);
 	if (vect < ARRAY_SIZE(excp_table))
 		printf("(%s)\n", excp_table[vect]);
 	else
