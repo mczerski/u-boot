@@ -165,7 +165,7 @@ void hang(void)
 {
 	disable_interrupts();
 	puts("### ERROR ### Please reset board ###\n");
-	asm("l.nop 0x1"); /* Kill any simulation */
+
 	for (;;)
 		;
 }
