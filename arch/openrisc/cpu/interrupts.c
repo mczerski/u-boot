@@ -74,6 +74,7 @@ int disable_interrupts(void)
 	mtspr(SPR_SR, mfspr(SPR_SR) & ~SPR_SR_IEE);
 	/* Disable timer exception */
 	mtspr(SPR_SR, mfspr(SPR_SR) & ~SPR_SR_TEE);
+
 	return 0;
 }
 
