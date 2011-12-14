@@ -22,9 +22,9 @@
 #
 
 VERSION = 2011
-PATCHLEVEL = 09
+PATCHLEVEL = 12
 SUBLEVEL =
-EXTRAVERSION =
+EXTRAVERSION = -rc1
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -277,12 +277,16 @@ LIBS += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
 endif
 LIBS += drivers/rtc/librtc.o
 LIBS += drivers/serial/libserial.o
+ifeq ($(CONFIG_GENERIC_LPC_TPM),y)
+LIBS += drivers/tpm/libtpm.o
+endif
 LIBS += drivers/twserial/libtws.o
 LIBS += drivers/usb/eth/libusb_eth.o
 LIBS += drivers/usb/gadget/libusb_gadget.o
 LIBS += drivers/usb/host/libusb_host.o
 LIBS += drivers/usb/musb/libusb_musb.o
 LIBS += drivers/usb/phy/libusb_phy.o
+LIBS += drivers/usb/ulpi/libusb_ulpi.o
 LIBS += drivers/video/libvideo.o
 LIBS += drivers/watchdog/libwatchdog.o
 LIBS += common/libcommon.o
@@ -293,10 +297,18 @@ LIBS += post/libpost.o
 ifneq ($(CONFIG_AM335X)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 LIBS += $(CPUDIR)/omap-common/libomap-common.o
 endif
+
+ifeq ($(SOC),mx5)
+LIBS += $(CPUDIR)/imx-common/libimx-common.o
+endif
+ifeq ($(SOC),mx6)
+LIBS += $(CPUDIR)/imx-common/libimx-common.o
+endif
+
 ifeq ($(SOC),s5pc1xx)
 LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
-ifeq ($(SOC),s5pc2xx)
+ifeq ($(SOC),exynos)
 LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 
@@ -483,7 +495,7 @@ mmc_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 
 $(obj)mmc_spl/u-boot-mmc-spl.bin:	mmc_spl
 
-$(obj)spl/u-boot-spl.bin:		depend
+$(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all
 
 updater:
@@ -643,37 +655,6 @@ ucname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\U\1/')
 # ARM
 #========================================================================
 
-xtract_omap1610xxx = $(subst _cs0boot,,$(subst _cs3boot,,$(subst _cs_autoboot,,$(subst _config,,$1))))
-
-omap1610inn_config \
-omap1610inn_cs0boot_config \
-omap1610inn_cs3boot_config \
-omap1610inn_cs_autoboot_config \
-omap1610h2_config \
-omap1610h2_cs0boot_config \
-omap1610h2_cs3boot_config \
-omap1610h2_cs_autoboot_config:	unconfig
-	@mkdir -p $(obj)include
-	@if [ "$(findstring _cs0boot_, $@)" ] ; then \
-		echo "#define CONFIG_CS0_BOOT" >> .$(obj)include/config.h ; \
-	elif [ "$(findstring _cs_autoboot_, $@)" ] ; then \
-		echo "#define CONFIG_CS_AUTOBOOT" >> $(obj)include/config.h ; \
-	else \
-		echo "#define CONFIG_CS3_BOOT" >> $(obj)include/config.h ; \
-	fi;
-	@$(MKCONFIG) -n $@ -a $(call xtract_omap1610xxx,$@) arm arm926ejs omap1610inn ti omap
-
-omap730p2_config \
-omap730p2_cs0boot_config \
-omap730p2_cs3boot_config :	unconfig
-	@mkdir -p $(obj)include
-	@if [ "$(findstring _cs0boot_, $@)" ] ; then \
-		echo "#define CONFIG_CS0_BOOT" >> $(obj)include/config.h ; \
-	else \
-		echo "#define CONFIG_CS3_BOOT" >> $(obj)include/config.h ; \
-	fi;
-	@$(MKCONFIG) -n $@ -a omap730p2 arm arm926ejs omap730p2 ti omap
-
 spear300_config \
 spear310_config \
 spear320_config :	unconfig
@@ -703,16 +684,6 @@ scpu_config:	unconfig
 		echo "#define CONFIG_SCPU"	>>$(obj)include/config.h ; \
 	fi
 	@$(MKCONFIG) -n $@ -a pdnb3 arm ixp pdnb3 prodrive
-
-#########################################################################
-## ARM1136 Systems
-#########################################################################
-
-apollon_config		: unconfig
-	@mkdir -p $(obj)include
-	@echo "#define CONFIG_ONENAND_U_BOOT" > $(obj)include/config.h
-	@echo "CONFIG_ONENAND_U_BOOT = y" >> $(obj)include/config.mk
-	@$(MKCONFIG) $@ arm arm1136 apollon - omap24xx
 
 #########################################################################
 ## ARM1176 Systems
@@ -751,7 +722,7 @@ clean:
 	       $(obj)tools/envcrc					  \
 	       $(obj)tools/gdb/{astest,gdbcont,gdbsend}			  \
 	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
-	       $(obj)tools/mkimage	   $(obj)tools/mpc86x_clk	  \
+	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
 	       $(obj)tools/ncb		   $(obj)tools/ubsha1
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
@@ -777,11 +748,14 @@ clean:
 		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \
 		| xargs rm -f
 
-clobber:	clean
-	@find $(OBJTREE) -type f \( -name '*.depend*' \
-		-o -name '*.srec' -o -name '*.bin' -o -name u-boot.img \) \
-		-print0 \
-		| xargs -0 rm -f
+# Removes everything not needed for testing u-boot
+tidy:	clean
+	@find $(OBJTREE) -type f \( -name '*.depend*' \) -print | xargs rm -f
+
+clobber:	tidy
+	@find $(OBJTREE) -type f \( -name '*.srec' \
+		-o -name '*.bin' -o -name u-boot.img \) \
+		-print0 | xargs -0 rm -f
 	@rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
 		$(obj)cscope.* $(obj)*.*~
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
@@ -790,8 +764,9 @@ clobber:	clean
 	@rm -f $(obj)u-boot.ubl
 	@rm -f $(obj)u-boot.dtb
 	@rm -f $(obj)u-boot.sb
-	@rm -f $(obj)tools/{env/crc32.c,inca-swap-bytes}
+	@rm -f $(obj)tools/inca-swap-bytes
 	@rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
+	@rm -f $(obj)arch/powerpc/cpu/mpc83xx/ddr-gen?.c
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f

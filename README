@@ -564,7 +564,7 @@ The following options need to be configured:
 
 		CONFIG_CFB_CONSOLE
 		Enables console device for a color framebuffer. Needs following
-		defines (cf. smiLynxEM, i8042, board/eltec/bab7xx)
+		defines (cf. smiLynxEM, i8042)
 			VIDEO_FB_LITTLE_ENDIAN	graphic memory organisation
 						(default big endian)
 			VIDEO_HW_RECTFILL	graphic chip supports
@@ -637,6 +637,23 @@ The following options need to be configured:
 
 		'Sane' compilers will generate smaller code if
 		CONFIG_PRE_CON_BUF_SZ is a power of 2
+
+- Pre-console putc():
+		Prior to the console being initialised, console output is
+		normally silently discarded. This can be annoying if a
+		panic() happens in this time.
+
+		If the CONFIG_PRE_CONSOLE_PUTC option is defined, then
+		U-Boot will call board_pre_console_putc() for each output
+		character in this case, This function should try to output
+		the character if possible, perhaps on all available UARTs
+		(it will need to do this directly, since the console code
+		is not functional yet). Note that if the panic happens
+		early enough, then it is possible that board_init_f()
+		(or even arch_cpu_init() on ARM) has not been called yet.
+		You should init all clocks, GPIOs, etc. that are needed
+		to get the character out. Baud rates will need to default
+		to something sensible.
 
 - Boot Delay:	CONFIG_BOOTDELAY - in seconds
 		Delay before automatically booting the default image;
@@ -1071,6 +1088,16 @@ The following options need to be configured:
 
 			CONFIG_SH_ETHER_CACHE_WRITEBACK
 			If this option is set, the driver enables cache flush.
+
+- TPM Support:
+		CONFIG_GENERIC_LPC_TPM
+		Support for generic parallel port TPM devices. Only one device
+		per system is supported at this time.
+
+			CONFIG_TPM_TIS_BASE_ADDRESS
+			Base address where the generic TPM device is mapped
+			to. Contemporary x86 systems usually map it at
+			0xfed40000.
 
 - USB Support:
 		At the moment only the UHCI host controller is
@@ -3273,6 +3300,44 @@ Low Level (hardware related) configuration options:
 		If these options are used a optimized version of memcpy/memset will
 		be used if available. These functions may be faster under some
 		conditions but may increase the binary size.
+
+Freescale QE/FMAN Firmware Support:
+-----------------------------------
+
+The Freescale QUICCEngine (QE) and Frame Manager (FMAN) both support the
+loading of "firmware", which is encoded in the QE firmware binary format.
+This firmware often needs to be loaded during U-Boot booting, so macros
+are used to identify the storage device (NOR flash, SPI, etc) and the address
+within that device.
+
+- CONFIG_SYS_QE_FMAN_FW_ADDR
+	The address in the storage device where the firmware is located.  The
+	meaning of this address depends on which CONFIG_SYS_QE_FW_IN_xxx macro
+	is also specified.
+
+- CONFIG_SYS_QE_FMAN_FW_LENGTH
+	The maximum possible size of the firmware.  The firmware binary format
+	has a field that specifies the actual size of the firmware, but it
+	might not be possible to read any part of the firmware unless some
+	local storage is allocated to hold the entire firmware first.
+
+- CONFIG_SYS_QE_FMAN_FW_IN_NOR
+	Specifies that QE/FMAN firmware is located in NOR flash, mapped as
+	normal addressable memory via the LBC.  CONFIG_SYS_FMAN_FW_ADDR is the
+	virtual address in NOR flash.
+
+- CONFIG_SYS_QE_FMAN_FW_IN_NAND
+	Specifies that QE/FMAN firmware is located in NAND flash.
+	CONFIG_SYS_FMAN_FW_ADDR is the offset within NAND flash.
+
+- CONFIG_SYS_QE_FMAN_FW_IN_MMC
+	Specifies that QE/FMAN firmware is located on the primary SD/MMC
+	device.  CONFIG_SYS_FMAN_FW_ADDR is the byte offset on that device.
+
+- CONFIG_SYS_QE_FMAN_FW_IN_SPIFLASH
+	Specifies that QE/FMAN firmware is located on the primary SPI
+	device.  CONFIG_SYS_FMAN_FW_ADDR is the byte offset on that device.
+
 
 Building the Software:
 ======================

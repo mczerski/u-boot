@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  * Ilko Iliev <www.ronetix.at>
  *
@@ -161,6 +161,7 @@
 #define CONFIG_INITRD_TAG	1
 
 #undef CONFIG_SKIP_LOWLEVEL_INIT
+#define CONFIG_BOARD_EARLY_INIT_F
 
 /*
  * Hardware drivers

@@ -40,6 +40,7 @@
 #include <asm/armv7.h>
 #include <asm/arch/gpio.h>
 #include <asm/omap_common.h>
+#include <i2c.h>
 
 /* Declarations */
 extern omap3_sysinfo sysinfo;
@@ -89,18 +90,12 @@ u32 omap_boot_device(void)
 	return omap3_boot_device;
 }
 
+void spl_board_init(void)
+{
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+}
 #endif /* CONFIG_SPL_BUILD */
 
-
-/******************************************************************************
- * Routine: delay
- * Description: spinning delay to use before udelay works
- *****************************************************************************/
-static inline void delay(unsigned long loops)
-{
-	__asm__ volatile ("1:\n" "subs %0, %1, #1\n"
-			  "bne 1b":"=r" (loops):"0"(loops));
-}
 
 /******************************************************************************
  * Routine: secure_unlock
@@ -227,7 +222,7 @@ void s_init(void)
 #endif
 
 	set_muxconf_regs();
-	delay(100);
+	sdelay(100);
 
 	prcm_init();
 

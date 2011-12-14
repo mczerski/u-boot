@@ -59,7 +59,7 @@
  * Hardware drivers
  */
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX51_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_MXC_GPIO
 
 /*
@@ -109,6 +109,19 @@
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
+
+/* USB Configs */
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_FAT
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_MX5
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+#define CONFIG_USB_ETHER_SMSC95XX
+#define CONFIG_MXC_USB_PORT	1
+#define CONFIG_MXC_USB_PORTSC	PORT_PTS_ULPI
+#define CONFIG_MXC_USB_FLAGS	MXC_EHCI_POWER_PINS_ENABLED
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE

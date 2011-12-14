@@ -24,6 +24,7 @@
 #include <common.h>
 #include <stdio_dev.h>
 #include <watchdog.h>
+#include <div64.h>
 #include <post.h>
 
 #ifdef CONFIG_SYS_POST_HOTKEYS_GPIO
@@ -494,8 +495,8 @@ void post_reloc(void)
  */
 unsigned long post_time_ms(unsigned long base)
 {
-#if defined(CONFIG_PPC) || defined(CONFIG_ARM)
-	return (unsigned long)(get_ticks() / (get_tbclk() / CONFIG_SYS_HZ))
+#if defined(CONFIG_PPC) || defined(CONFIG_ARM) && !defined(CONFIG_KIRKWOOD)
+	return (unsigned long)lldiv(get_ticks(), get_tbclk() / CONFIG_SYS_HZ)
 		- base;
 #else
 #warning "Not implemented yet"

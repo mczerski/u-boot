@@ -107,7 +107,7 @@
 #define IH_ARCH_AVR32		17	/* AVR32	*/
 #define IH_ARCH_ST200	        18	/* STMicroelectronics ST200  */
 #define IH_ARCH_SANDBOX		19	/* Sandbox architecture (test only) */
-#define IH_ARCH_NDS32	        19	/* ANDES Technology - NDS32  */
+#define IH_ARCH_NDS32	        20	/* ANDES Technology - NDS32  */
 #define IH_ARCH_OPENRISC        92	/* OpenRISC 1000  */
 
 /*
@@ -163,6 +163,7 @@
 #define IH_TYPE_UBLIMAGE	11	/* Davinci UBL Image		*/
 #define IH_TYPE_OMAPIMAGE	12	/* TI OMAP Config Header Image	*/
 #define IH_TYPE_AISIMAGE	13	/* TI Davinci AIS Image		*/
+#define IH_TYPE_KERNEL_NOLOAD	14	/* OS Kernel Image, can run from any load address */
 
 /*
  * Compression Types

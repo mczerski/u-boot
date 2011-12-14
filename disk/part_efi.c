@@ -130,7 +130,7 @@ void print_part_efi(block_dev_desc_t * dev_desc)
 	}
 	/* This function validates AND fills in the GPT header and PTE */
 	if (is_gpt_valid(dev_desc, GPT_PRIMARY_PARTITION_TABLE_LBA,
-			 &(gpt_head), &gpt_pte) != 1) {
+			 gpt_head, &gpt_pte) != 1) {
 		printf("%s: *** ERROR: Invalid GPT ***\n", __func__);
 		return;
 	}
@@ -169,7 +169,7 @@ int get_partition_info_efi(block_dev_desc_t * dev_desc, int part,
 
 	/* This function validates AND fills in the GPT header and PTE */
 	if (is_gpt_valid(dev_desc, GPT_PRIMARY_PARTITION_TABLE_LBA,
-			&(gpt_head), &gpt_pte) != 1) {
+			gpt_head, &gpt_pte) != 1) {
 		printf("%s: *** ERROR: Invalid GPT ***\n", __func__);
 		return -1;
 	}
@@ -380,7 +380,7 @@ static gpt_entry *alloc_read_gpt_entries(block_dev_desc_t * dev_desc,
 
 	/* Allocate memory for PTE, remember to FREE */
 	if (count != 0) {
-		pte = memalign(CONFIG_SYS_CACHELINE_SIZE, count);
+		pte = memalign(ARCH_DMA_MINALIGN, count);
 	}
 
 	if (count == 0 || pte == NULL) {

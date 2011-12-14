@@ -226,7 +226,7 @@ static void power_init(void)
 
 	/* Set core voltage to 1.1V */
 	pmic_reg_read(p, REG_SW_0, &val);
-	val = (val & ~SWx_VOLT_MASK) | SWx_1_100V;
+	val = (val & ~SWx_VOLT_MASK) | SWx_1_200V;
 	pmic_reg_write(p, REG_SW_0, val);
 
 	/* Setup VCC (SW2) to 1.25 */
@@ -260,17 +260,22 @@ static void power_init(void)
 		(SWMODE_AUTO_AUTO << SWMODE4_SHIFT);
 	pmic_reg_write(p, REG_SW_5, val);
 
-	/* Set VDIG to 1.65V, VGEN3 to 1.8V, VCAM to 2.6V */
+	/* Set VDIG to 1.8V, VGEN3 to 1.8V, VCAM to 2.6V */
 	pmic_reg_read(p, REG_SETTING_0, &val);
 	val &= ~(VCAM_MASK | VGEN3_MASK | VDIG_MASK);
-	val |= VDIG_1_65 | VGEN3_1_8 | VCAM_2_6;
+	val |= VDIG_1_8 | VGEN3_1_8 | VCAM_2_6;
 	pmic_reg_write(p, REG_SETTING_0, val);
 
 	/* Set VVIDEO to 2.775V, VAUDIO to 3V, VSD to 3.15V */
 	pmic_reg_read(p, REG_SETTING_1, &val);
 	val &= ~(VVIDEO_MASK | VSD_MASK | VAUDIO_MASK);
-	val |= VSD_3_15 | VAUDIO_3_0 | VVIDEO_2_775;
+	val |= VSD_3_15 | VAUDIO_3_0 | VVIDEO_2_775 | VGEN1_1_2 | VGEN2_3_15;
 	pmic_reg_write(p, REG_SETTING_1, val);
+
+	/* Enable VGEN1, VGEN2, VDIG, VPLL */
+	pmic_reg_read(p, REG_MODE_0, &val);
+	val |= VGEN1EN | VDIGEN | VGEN2EN | VPLLEN;
+	pmic_reg_write(p, REG_MODE_0, val);
 
 	/* Configure VGEN3 and VCAM regulators to use external PNP */
 	val = VGEN3CONFIG | VCAMCONFIG;
@@ -279,7 +284,7 @@ static void power_init(void)
 
 	/* Enable VGEN3, VCAM, VAUDIO, VVIDEO, VSD regulators */
 	val = VGEN3EN | VGEN3CONFIG | VCAMEN | VCAMCONFIG |
-		VVIDEOEN | VAUDIOEN  | VSDEN;
+		VVIDEOEN | VAUDIOEN | VSDEN;
 	pmic_reg_write(p, REG_MODE_1, val);
 
 	pmic_reg_read(p, REG_POWER_CTL2, &val);
@@ -535,6 +540,15 @@ static inline void setup_iomux_ata(void) { }
 #endif
 
 /*
+ * EHCI USB
+ */
+#ifdef	CONFIG_CMD_USB
+extern void setup_iomux_usb(void);
+#else
+static inline void setup_iomux_usb(void) { }
+#endif
+
+/*
  * LED configuration
  */
 void setup_iomux_led(void)
@@ -683,6 +697,12 @@ int board_late_init(void)
 
 	setup_iomux_led();
 	setup_iomux_ata();
+	setup_iomux_usb();
+
+	if (machine_is_efikasb())
+		setenv("preboot", "usb reset ; setenv stdin usbkbd\0");
+
+	setup_iomux_led();
 
 	efikamx_toggle_led(EFIKAMX_LED_BLUE);
 

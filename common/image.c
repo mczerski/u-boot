@@ -137,6 +137,7 @@ static const table_entry_t uimage_type[] = {
 	{	IH_TYPE_FIRMWARE,   "firmware",	  "Firmware",		},
 	{	IH_TYPE_FLATDT,     "flat_dt",    "Flat Device Tree",	},
 	{	IH_TYPE_KERNEL,	    "kernel",	  "Kernel Image",	},
+	{	IH_TYPE_KERNEL_NOLOAD, "kernel_noload",  "Kernel Image (no loading done)", },
 	{	IH_TYPE_KWBIMAGE,   "kwbimage",   "Kirkwood Boot Image",},
 	{	IH_TYPE_IMXIMAGE,   "imximage",   "Freescale i.MX Boot Image",},
 	{	IH_TYPE_INVALID,    NULL,	  "Invalid Image",	},
@@ -1104,6 +1105,14 @@ int boot_ramdisk_high(struct lmb *lmb, ulong rd_data, ulong rd_len,
 			memmove_wd((void *)*initrd_start,
 					(void *)rd_data, rd_len, CHUNKSZ);
 
+#ifdef CONFIG_MP
+			/*
+			 * Ensure the image is flushed to memory to handle
+			 * AMP boot scenarios in which we might not be
+			 * HW cache coherent
+			 */
+			flush_cache((unsigned long)*initrd_start, rd_len);
+#endif
 			puts("OK\n");
 		}
 	} else {
