@@ -108,7 +108,7 @@ static const struct pinmux_config gpio_pins[] = {
 #endif
 };
 
-static const struct pinmux_resource pinmuxes[] = {
+const struct pinmux_resource pinmuxes[] = {
 #ifdef CONFIG_DRIVER_TI_EMAC
 	PINMUX_ITEM(emac_pins_mdio),
 #ifdef CONFIG_DRIVER_TI_EMAC_USE_RMII
@@ -135,13 +135,17 @@ static const struct pinmux_resource pinmuxes[] = {
 	PINMUX_ITEM(gpio_pins),
 };
 
-static const struct lpsc_resource lpsc[] = {
+const int pinmuxes_size = ARRAY_SIZE(pinmuxes);
+
+const struct lpsc_resource lpsc[] = {
 	{ DAVINCI_LPSC_AEMIF },	/* NAND, NOR */
 	{ DAVINCI_LPSC_SPI1 },	/* Serial Flash */
 	{ DAVINCI_LPSC_EMAC },	/* image download */
 	{ DAVINCI_LPSC_UART2 },	/* console */
 	{ DAVINCI_LPSC_GPIO },
 };
+
+const int lpsc_size = ARRAY_SIZE(lpsc);
 
 #ifndef CONFIG_DA850_EVM_MAX_CPU_CLK
 #define CONFIG_DA850_EVM_MAX_CPU_CLK	300000000

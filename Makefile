@@ -24,7 +24,7 @@
 VERSION = 2011
 PATCHLEVEL = 12
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION =
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -294,7 +294,7 @@ LIBS += lib/libfdt/libfdt.o
 LIBS += api/libapi.o
 LIBS += post/libpost.o
 
-ifneq ($(CONFIG_AM335X)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
+ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 LIBS += $(CPUDIR)/omap-common/libomap-common.o
 endif
 
@@ -428,6 +428,18 @@ $(obj)u-boot.ubl:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
 		-e $(CONFIG_SYS_TEXT_BASE) -d $(obj)u-boot-ubl.bin $(obj)u-boot.ubl
 		rm $(obj)u-boot-ubl.bin
 		rm $(obj)spl/u-boot-spl-pad.bin
+
+$(obj)u-boot.ais:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
+		$(obj)tools/mkimage -s -n /dev/null -T aisimage \
+			-e $(CONFIG_SPL_TEXT_BASE) \
+			-d $(obj)spl/u-boot-spl.bin \
+			$(obj)spl/u-boot-spl.ais
+		$(OBJCOPY) ${OBJCFLAGS} -I binary \
+			--pad-to=$(CONFIG_SPL_MAX_SIZE) -O binary \
+			$(obj)spl/u-boot-spl.ais $(obj)spl/u-boot-spl-pad.ais
+		cat $(obj)spl/u-boot-spl-pad.ais $(obj)u-boot.bin > \
+			$(obj)u-boot.ais
+		rm $(obj)spl/u-boot-spl{,-pad}.ais
 
 $(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
 		elftosb -zdf imx28 -c $(TOPDIR)/board/$(BOARDDIR)/u-boot.bd \
@@ -643,7 +655,7 @@ unconfig:
 
 sinclude $(obj).boards.depend
 $(obj).boards.depend:	boards.cfg
-	awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
+	@awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
 
 #
 # Functions to generate common board directory names
@@ -654,14 +666,6 @@ ucname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\U\1/')
 #========================================================================
 # ARM
 #========================================================================
-
-spear300_config \
-spear310_config \
-spear320_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $@ spear3xx arm arm926ejs $(@:_config=) spear spear
-
-spear600_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $@ spear6xx arm arm926ejs $(@:_config=) spear spear
 
 SX1_stdout_serial_config \
 SX1_config:		unconfig
@@ -723,6 +727,7 @@ clean:
 	       $(obj)tools/gdb/{astest,gdbcont,gdbsend}			  \
 	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
 	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
+	       $(obj)tools/mk{smdk5250,}spl				  \
 	       $(obj)tools/ncb		   $(obj)tools/ubsha1
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
@@ -762,6 +767,7 @@ clobber:	tidy
 	@rm -f $(obj)u-boot.kwb
 	@rm -f $(obj)u-boot.imx
 	@rm -f $(obj)u-boot.ubl
+	@rm -f $(obj)u-boot.ais
 	@rm -f $(obj)u-boot.dtb
 	@rm -f $(obj)u-boot.sb
 	@rm -f $(obj)tools/inca-swap-bytes

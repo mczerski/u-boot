@@ -502,7 +502,7 @@ int do_env_edit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	else
 		buffer[0] = '\0';
 
-	readline_into_buffer("edit: ", buffer);
+	readline_into_buffer("edit: ", buffer, 0);
 
 	return setenv(argv[1], buffer);
 }
@@ -868,7 +868,7 @@ static int do_env_import(cmd_tbl_t *cmdtp, int flag,
 			printf("## Warning: Input data exceeds %d bytes"
 				" - truncated\n", MAX_ENV_SIZE);
 		}
-		++size;
+		size += 2;
 		printf("## Info: input data size = %zu = 0x%zX\n", size, size);
 	}
 

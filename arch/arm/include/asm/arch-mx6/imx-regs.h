@@ -167,7 +167,7 @@
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>
 
-extern void imx_get_mac_from_fuse(unsigned char *mac);
+extern void imx_get_mac_from_fuse(int dev_id, unsigned char *mac);
 
 /* System Reset Controller (SRC) */
 struct src {
@@ -214,7 +214,7 @@ struct iim_regs {
 	u32     crc_value;
 	u32     rsvd6[3];
 	u32     version;
-	u32     rsvd7[0xd8];
+	u32     rsvd7[0xdb];
 
 	struct fuse_bank {
 		u32	fuse_regs[0x20];
@@ -230,6 +230,17 @@ struct fuse_bank4_regs {
 	u32     rsvd2[3];
 	u32     mac_addr_high;
 	u32	rsvd3[0x13];
+};
+
+struct aipstz_regs {
+	u32	mprot0;
+	u32	mprot1;
+	u32	rsvd[0xe];
+	u32	opacr0;
+	u32	opacr1;
+	u32	opacr2;
+	u32	opacr3;
+	u32	opacr4;
 };
 
 #endif /* __ASSEMBLER__*/

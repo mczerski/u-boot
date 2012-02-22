@@ -112,6 +112,7 @@ static void set_name(dir_entry *dirent, const char *filename)
 	debug("ext : %s\n", dirent->ext);
 }
 
+static __u8 num_of_fats;
 /*
  * Write fat buffer into block device
  */
@@ -132,6 +133,15 @@ static int flush_fat_buffer(fsdata *mydata)
 	if (disk_write(startblock, getsize, bufptr) < 0) {
 		debug("error: writing FAT blocks\n");
 		return -1;
+	}
+
+	if (num_of_fats == 2) {
+		/* Update corresponding second FAT blocks */
+		startblock += mydata->fatlength;
+		if (disk_write(startblock, getsize, bufptr) < 0) {
+			debug("error: writing second FAT blocks\n");
+			return -1;
+		}
 	}
 
 	return 0;
@@ -323,7 +333,7 @@ static void
 fill_dir_slot(fsdata *mydata, dir_entry **dentptr, const char *l_name)
 {
 	dir_slot *slotptr = (dir_slot *)get_vfatname_block;
-	__u8 counter, checksum;
+	__u8 counter = 0, checksum;
 	int idx = 0, ret;
 	char s_name[16];
 
@@ -926,6 +936,7 @@ static int do_fat_write(const char *filename, void *buffer,
 	int cursect;
 	int root_cluster, ret = -1, name_len;
 	char l_filename[VFAT_MAXLEN_BYTES];
+	int write_size = size;
 
 	dir_curclust = 0;
 
@@ -949,6 +960,7 @@ static int do_fat_write(const char *filename, void *buffer,
 
 	cursect = mydata->rootdir_sect
 		= mydata->fat_sect + mydata->fatlength * bs.fats;
+	num_of_fats = bs.fats;
 
 	mydata->sect_size = (bs.sector_size[1] << 8) + bs.sector_size[0];
 	mydata->clust_size = bs.cluster_size;
@@ -985,7 +997,11 @@ static int do_fat_write(const char *filename, void *buffer,
 	dentptr = (dir_entry *) do_fat_read_block;
 
 	name_len = strlen(filename);
+	if (name_len >= VFAT_MAXLEN_BYTES)
+		name_len = VFAT_MAXLEN_BYTES - 1;
+
 	memcpy(l_filename, filename, name_len);
+	l_filename[name_len] = 0; /* terminate the string */
 	downcase(l_filename);
 
 	startsect = mydata->rootdir_sect;
@@ -1012,10 +1028,12 @@ static int do_fat_write(const char *filename, void *buffer,
 		}
 
 		ret = set_contents(mydata, retdent, buffer, size);
-		if (ret) {
+		if (ret < 0) {
 			printf("Error: writing contents\n");
 			goto exit;
 		}
+		write_size = ret;
+		debug("attempt to write 0x%x bytes\n", write_size);
 
 		/* Flush fat buffer */
 		ret = flush_fat_buffer(mydata);
@@ -1029,7 +1047,7 @@ static int do_fat_write(const char *filename, void *buffer,
 			    get_dentfromdir_block,
 			    mydata->clust_size * mydata->sect_size);
 		if (ret) {
-			printf("Error: wrinting directory entry\n");
+			printf("Error: writing directory entry\n");
 			goto exit;
 		}
 	} else {
@@ -1056,10 +1074,12 @@ static int do_fat_write(const char *filename, void *buffer,
 			start_cluster, size, 0x20);
 
 		ret = set_contents(mydata, empty_dentptr, buffer, size);
-		if (ret) {
+		if (ret < 0) {
 			printf("Error: writing contents\n");
 			goto exit;
 		}
+		write_size = ret;
+		debug("attempt to write 0x%x bytes\n", write_size);
 
 		/* Flush fat buffer */
 		ret = flush_fat_buffer(mydata);
@@ -1080,7 +1100,7 @@ static int do_fat_write(const char *filename, void *buffer,
 
 exit:
 	free(mydata->fatbuf);
-	return ret;
+	return ret < 0 ? ret : write_size;
 }
 
 int file_fat_write(const char *filename, void *buffer, unsigned long maxsize)

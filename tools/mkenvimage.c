@@ -25,6 +25,9 @@
  * MA 02111-1307 USA
  */
 
+/* We want the GNU version of basename() */
+#define _GNU_SOURCE
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -36,6 +39,7 @@
 #include <sys/stat.h>
 
 #include <u-boot/crc.h>
+#include <version.h>
 
 #define CRC_SIZE sizeof(uint32_t)
 
@@ -56,6 +60,7 @@ static void usage(const char *exec_name)
 	       "\t-b : the target is big endian (default is little endian)\n"
 	       "\t-p <byte> : fill the image with <byte> bytes instead of "
 	       "0xff bytes\n"
+	       "\t-V : print version information and exit\n"
 	       "\n"
 	       "If the input file is \"-\", data is read from standard input\n",
 	       exec_name);
@@ -79,9 +84,15 @@ int main(int argc, char **argv)
 	struct stat txt_file_stat;
 
 	int fp, ep;
+	const char *prg;
+
+	prg = basename(argv[0]);
+
+	/* Turn off getopt()'s internal error message */
+	opterr = 0;
 
 	/* Parse the cmdline */
-	while ((option = getopt(argc, argv, "s:o:rbp:h")) != -1) {
+	while ((option = getopt(argc, argv, ":s:o:rbp:hV")) != -1) {
 		switch (option) {
 		case 's':
 			datasize = strtol(optarg, NULL, 0);
@@ -104,11 +115,19 @@ int main(int argc, char **argv)
 			padbyte = strtol(optarg, NULL, 0);
 			break;
 		case 'h':
-			usage(argv[0]);
+			usage(prg);
 			return EXIT_SUCCESS;
-		default:
-			fprintf(stderr, "Wrong option -%c\n", option);
+		case 'V':
+			printf("%s version %s\n", prg, PLAIN_VERSION);
+			return EXIT_SUCCESS;
+		case ':':
+			fprintf(stderr, "Missing argument for option -%c\n",
+				optopt);
 			usage(argv[0]);
+			return EXIT_FAILURE;
+		default:
+			fprintf(stderr, "Wrong option -%c\n", optopt);
+			usage(prg);
 			return EXIT_FAILURE;
 		}
 	}
@@ -116,9 +135,9 @@ int main(int argc, char **argv)
 	/* Check datasize and allocate the data */
 	if (datasize == 0) {
 		fprintf(stderr,
-			"Please specify the size of the envrionnment "
+			"Please specify the size of the environment "
 			"partition.\n");
-		usage(argv[0]);
+		usage(prg);
 		return EXIT_FAILURE;
 	}
 
@@ -182,30 +201,30 @@ int main(int argc, char **argv)
 		ret = close(txt_fd);
 	}
 	/*
-	 * The right test to do is "=>" (not ">") because of the additionnal
+	 * The right test to do is "=>" (not ">") because of the additional
 	 * ending \0. See below.
 	 */
 	if (filesize >= envsize) {
 		fprintf(stderr, "The input file is larger than the "
-				"envrionnment partition size\n");
+				"environment partition size\n");
 		return EXIT_FAILURE;
 	}
 
 	/* Replace newlines separating variables with \0 */
 	for (fp = 0, ep = 0 ; fp < filesize ; fp++) {
 		if (filebuf[fp] == '\n') {
-			if (fp == 0) {
+			if (ep == 0) {
 				/*
-				 * Newline at the beggining of the file ?
-				 * Ignore it.
+				 * Newlines at the beginning of the file ?
+				 * Ignore them.
 				 */
 				continue;
 			} else if (filebuf[fp-1] == '\\') {
 				/*
 				 * Embedded newline in a variable.
 				 *
-				 * The backslash was added to the envptr ;
-				 * rewind and replace it with a newline
+				 * The backslash was added to the envptr; rewind
+				 * and replace it with a newline
 				 */
 				ep--;
 				envptr[ep++] = '\n';

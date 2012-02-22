@@ -108,7 +108,7 @@
 #define IH_ARCH_ST200	        18	/* STMicroelectronics ST200  */
 #define IH_ARCH_SANDBOX		19	/* Sandbox architecture (test only) */
 #define IH_ARCH_NDS32	        20	/* ANDES Technology - NDS32  */
-#define IH_ARCH_OPENRISC        92	/* OpenRISC 1000  */
+#define IH_ARCH_OPENRISC        21	/* OpenRISC 1000  */
 
 /*
  * Image Types

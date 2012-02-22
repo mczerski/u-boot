@@ -103,12 +103,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_MEMTEST_END		0x1fffffff
 #define CONFIG_PANIC_HANG	/* do not reset board on panic */
 
-
-
-
-
-
-
  /*
   * Config the L2 Cache as L2 SRAM
   */
@@ -316,7 +310,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define _IO_BASE		0x00000000
 #endif
 
-
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 #define CONFIG_DOS_PARTITION
 
@@ -357,6 +350,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  */
 #if defined(CONFIG_RAMBOOT_SDCARD)
 	#define CONFIG_ENV_IS_IN_MMC	1
+	#define CONFIG_FSL_FIXED_MMC_LOCATION
 	#define CONFIG_ENV_SIZE		0x2000
 	#define CONFIG_SYS_MMC_ENV_DEV	0
 #elif defined(CONFIG_RAMBOOT_SPIFLASH)
@@ -562,6 +556,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 	"tftp $loadaddr $tftppath/$bootfile;"				\
 	"tftp $fdtaddr $tftppath/$fdtfile;"				\
 	"bootm $loadaddr - $fdtaddr"
+
 
 #define CONFIG_RAMBOOTCOMMAND						\
 	"setenv bootargs root=/dev/ram rw "				\

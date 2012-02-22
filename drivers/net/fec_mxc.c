@@ -345,9 +345,10 @@ static void fec_rbd_clean(int last, struct fec_bd *pRbd)
 	writew(0, &pRbd->data_length);
 }
 
-static int fec_get_hwaddr(struct eth_device *dev, unsigned char *mac)
+static int fec_get_hwaddr(struct eth_device *dev, int dev_id,
+						unsigned char *mac)
 {
-	imx_get_mac_from_fuse(mac);
+	imx_get_mac_from_fuse(dev_id, mac);
 	return !is_valid_ether_addr(mac);
 }
 
@@ -384,6 +385,14 @@ static int fec_open(struct eth_device *edev)
 	writel(1 << 2, &fec->eth->x_cntrl);
 	fec->rbd_index = 0;
 
+#if defined(CONFIG_MX6Q)
+	/* Enable ENET HW endian SWAP */
+	writel(readl(&fec->eth->ecntrl) | FEC_ECNTRL_DBSWAP,
+		&fec->eth->ecntrl);
+	/* Enable ENET store and forward mode */
+	writel(readl(&fec->eth->x_wmrk) | FEC_X_WMRK_STRFWD,
+		&fec->eth->x_wmrk);
+#endif
 	/*
 	 * Enable FEC-Lite controller
 	 */
@@ -485,6 +494,8 @@ static int fec_init(struct eth_device *dev, bd_t* bd)
 	rcntrl = PKTSIZE << FEC_RCNTRL_MAX_FL_SHIFT;
 	if (fec->xcv_type == SEVENWIRE)
 		rcntrl |= FEC_RCNTRL_FCE;
+	else if (fec->xcv_type == RGMII)
+		rcntrl |= FEC_RCNTRL_RGMII;
 	else if (fec->xcv_type == RMII)
 		rcntrl |= FEC_RCNTRL_RMII;
 	else	/* MII mode */
@@ -812,8 +823,8 @@ static int fec_probe(bd_t *bd, int dev_id, int phy_id, uint32_t base_addr)
 
 	eth_register(edev);
 
-	if (fec_get_hwaddr(edev, ethaddr) == 0) {
-		debug("got MAC address from fuse: %pM\n", ethaddr);
+	if (fec_get_hwaddr(edev, dev_id, ethaddr) == 0) {
+		debug("got MAC%d address from fuse: %pM\n", dev_id, ethaddr);
 		memcpy(edev->enetaddr, ethaddr, 6);
 	}
 
