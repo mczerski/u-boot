@@ -78,7 +78,7 @@ void exception_handler(int vect)
 {
 	int exception = vect >> 8;
 
-	if (handlers[exception])
+	if (handlers[exception] && exception >= 0 && exception < 32)
 		handlers[exception]();
 	else
 		exception_hang(vect);
