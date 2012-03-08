@@ -44,11 +44,15 @@ void invalidate_dcache_range(unsigned long addr, unsigned long stop)
 static void invalidate_icache_range(unsigned long addr, unsigned long stop)
 {
 	ulong block_size = (mfspr(SPR_ICCFGR) & SPR_ICCFGR_CBS) ? 32 : 16;
+	ulong ie = icache_status();
 
+	icache_disable();
 	while (addr < stop) {
 		mtspr(SPR_ICBIR, addr);
 		addr += block_size;
 	}
+	if (ie)
+		icache_enable();
 }
 
 void flush_cache(unsigned long addr, unsigned long size)
