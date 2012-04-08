@@ -105,6 +105,8 @@
 /*
  * Memory organisation:
  *
+ * Environment is in flash so we have:
+ *
  * RAM start ---------------------------
  *           | ...                     |
  *           ---------------------------
@@ -112,17 +114,26 @@
  *           ---------------------------
  *           | Global data             |
  *           ---------------------------
- *           | Environment             |
- *           ---------------------------
  *           | Monitor                 |
  * RAM end   ---------------------------
+ *
+ * 
+ * flash st. ---------------------------
+ *           | ...                     |
+ *           ---------------------------
+ *           | Environment (a sector)  |
+ *           ---------------------------
+ *           | ...                     |
+ * flash end ---------------------------
+ *
  */
-/* We're running in RAM */
+
+/* We're running in RAM (after we're relocated) */
 #define CONFIG_MONITOR_IS_IN_RAM
 #define CONFIG_SYS_MONITOR_LEN	0x40000	/* Reserve 256k */
-#define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_SDRAM_BASE + \
-				CONFIG_SYS_SDRAM_SIZE - \
-				CONFIG_SYS_MONITOR_LEN)
+#define CONFIG_SYS_MONITOR_BASE	((CONFIG_SYS_SDRAM_BASE +	\
+				  CONFIG_SYS_SDRAM_SIZE) -	\
+				 CONFIG_SYS_MONITOR_LEN)
 
 #define CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_ENV_OFFSET	0x80000 /*
@@ -137,16 +148,23 @@
 /*
  * Global data object and stack pointer
  */
+
+#ifdef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MONITOR_BASE \
+					- GENERATED_GBL_DATA_SIZE)
+#else
 #define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_ENV_ADDR \
 					- GENERATED_GBL_DATA_SIZE)
+
+#endif
 #define CONFIG_SYS_GBL_DATA_ADDR	CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_STACK_LENGTH		0x10000 /* 64KB */
 #define CONFIG_SYS_MALLOC_LEN		0x400000 /* 4MB */
-#define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_INIT_SP_OFFSET \
-					- CONFIG_SYS_STACK_LENGTH \
-					- CONFIG_SYS_MALLOC_LEN)
+#define CONFIG_SYS_MALLOC_BASE		((CONFIG_SYS_INIT_SP_OFFSET	\
+					  - CONFIG_SYS_STACK_LENGTH)	\
+					 - CONFIG_SYS_MALLOC_LEN)
 /*
  * MISC
  */
