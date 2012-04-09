@@ -29,9 +29,9 @@
 #include <asm/gpio.h>
 #include <mmc.h>
 #include <fsl_esdhc.h>
+#include <micrel.h>
 #include <miiphy.h>
 #include <netdev.h>
-
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |            \
@@ -45,6 +45,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define ENET_PAD_CTRL  (PAD_CTL_PKE | PAD_CTL_PUE |		\
 	PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED   |		\
 	PAD_CTL_DSE_40ohm   | PAD_CTL_HYS)
+
+#define SPI_PAD_CTRL (PAD_CTL_HYS |				\
+	PAD_CTL_PUS_100K_DOWN | PAD_CTL_SPEED_MED |		\
+	PAD_CTL_DSE_40ohm     | PAD_CTL_SRE_FAST)
 
 int dram_init(void)
 {
@@ -136,11 +140,29 @@ static void setup_iomux_enet(void)
 	imx_iomux_v3_setup_multiple_pads(enet_pads2, ARRAY_SIZE(enet_pads2));
 }
 
+iomux_v3_cfg_t usb_pads[] = {
+	MX6Q_PAD_GPIO_17__GPIO_7_12 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 static void setup_iomux_uart(void)
 {
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
        imx_iomux_v3_setup_multiple_pads(uart2_pads, ARRAY_SIZE(uart2_pads));
 }
+
+#ifdef CONFIG_USB_EHCI_MX6
+int board_ehci_hcd_init(int port)
+{
+	imx_iomux_v3_setup_multiple_pads(usb_pads, ARRAY_SIZE(usb_pads));
+
+	/* Reset USB hub */
+	gpio_direction_output(GPIO_NUMBER(7, 12), 0);
+	mdelay(2);
+	gpio_set_value(GPIO_NUMBER(7, 12), 1);
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg usdhc_cfg[2] = {
@@ -193,51 +215,54 @@ int board_mmc_init(bd_t *bis)
 }
 #endif
 
-#define MII_1000BASET_CTRL		0x9
-#define MII_EXTENDED_CTRL		0xb
-#define MII_EXTENDED_DATAW		0xc
-
-int fecmxc_mii_postcall(int phy)
+u32 get_board_rev(void)
 {
-	/* prefer master mode */
-	miiphy_write("FEC", phy, MII_1000BASET_CTRL, 0x0f00);
+	return 0x63000 ;
+}
 
+#ifdef CONFIG_MXC_SPI
+iomux_v3_cfg_t ecspi1_pads[] = {
+	/* SS1 */
+	MX6Q_PAD_EIM_D19__GPIO_3_19   | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6Q_PAD_EIM_D17__ECSPI1_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6Q_PAD_EIM_D18__ECSPI1_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL),
+	MX6Q_PAD_EIM_D16__ECSPI1_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL),
+};
+
+void setup_spi(void)
+{
+	gpio_direction_output(CONFIG_SF_DEFAULT_CS, 1);
+	imx_iomux_v3_setup_multiple_pads(ecspi1_pads,
+					 ARRAY_SIZE(ecspi1_pads));
+}
+#endif
+
+int board_phy_config(struct phy_device *phydev)
+{
 	/* min rx data delay */
-	miiphy_write("FEC", phy, MII_EXTENDED_CTRL, 0x8105);
-	miiphy_write("FEC", phy, MII_EXTENDED_DATAW, 0x0000);
-
-	/* max rx/tx clock delay, min rx/tx control delay */
-	miiphy_write("FEC", phy, MII_EXTENDED_CTRL, 0x8104);
-	miiphy_write("FEC", phy, MII_EXTENDED_DATAW, 0xf0f0);
-	miiphy_write("FEC", phy, MII_EXTENDED_CTRL, 0x104);
-
+	ksz9021_phy_extended_write(phydev,
+			MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
+	/* min tx data delay */
+	ksz9021_phy_extended_write(phydev,
+			MII_KSZ9021_EXT_RGMII_TX_DATA_SKEW, 0x0);
+	/* max rx/tx clock delay, min rx/tx control */
+	ksz9021_phy_extended_write(phydev,
+			MII_KSZ9021_EXT_RGMII_CLOCK_SKEW, 0xf0f0);
+	if (phydev->drv->config)
+		phydev->drv->config(phydev);
+ 
 	return 0;
 }
 
 int board_eth_init(bd_t *bis)
 {
-	struct eth_device *dev;
 	int ret;
 
 	setup_iomux_enet();
 
 	ret = cpu_eth_init(bis);
-	if (ret) {
+	if (ret)
 		printf("FEC MXC: %s:failed\n", __func__);
-		return ret;
-	}
-
-	dev = eth_get_dev_by_name("FEC");
-	if (!dev) {
-		printf("FEC MXC: Unable to get FEC device entry\n");
-		return -EINVAL;
-	}
-
-	ret = fecmxc_register_mii_postcall(dev, fecmxc_mii_postcall);
-	if (ret) {
-		printf("FEC MXC: Unable to register FEC mii postcall\n");
-		return ret;
-	}
 
 	return 0;
 }
@@ -253,6 +278,10 @@ int board_init(void)
 {
        /* address of boot parameters */
        gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
+
+#ifdef CONFIG_MXC_SPI
+	setup_spi();
+#endif
 
        return 0;
 }

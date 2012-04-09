@@ -207,6 +207,13 @@ typedef void (interrupt_handler_t)(void *);
 #endif /* CONFIG_SERIAL_MULTI */
 
 /*
+ * Return the time since boot in microseconds, This is needed for bootstage
+ * and should be defined in CPU- or board-specific code. If undefined then
+ * millisecond resolution will be used (the standard get_timer()).
+ */
+ulong timer_get_boot_us(void);
+
+/*
  * General Purpose Utilities
  */
 #define min(X, Y)				\
@@ -260,10 +267,7 @@ int	print_buffer (ulong addr, void* data, uint width, uint count, uint linelen);
 
 /* common/main.c */
 void	main_loop	(void);
-int	run_command	(const char *cmd, int flag);
-#ifdef CONFIG_CMD_PXE
-int run_command2(const char *cmd, int flag);
-#endif
+int run_command(const char *cmd, int flag);
 int	readline	(const char *const prompt);
 int	readline_into_buffer(const char *const prompt, char *buffer,
 			int timeout);
@@ -286,13 +290,6 @@ extern ulong monitor_flash_len;
 int mac_read_from_eeprom(void);
 extern u8 _binary_dt_dtb_start[];	/* embedded device tree blob */
 int set_cpu_clk_info(void);
-
-/*
- * Called when console output is requested before the console is available.
- * The board should do its best to get the character out to the user any way
- * it can.
- */
-void board_pre_console_putc(int ch);
 
 /* common/flash.c */
 void flash_perror (int);
@@ -801,10 +798,8 @@ int	pcmcia_init (void);
 #ifdef CONFIG_STATUS_LED
 # include <status_led.h>
 #endif
-/*
- * Board-specific Platform code can reimplement show_boot_progress () if needed
- */
-void show_boot_progress(int val);
+
+#include <bootstage.h>
 
 /* Multicore arch functions */
 #ifdef CONFIG_MP

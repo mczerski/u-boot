@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000-2011
+# (C) Copyright 2000-2012
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -21,10 +21,10 @@
 # MA 02111-1307 USA
 #
 
-VERSION = 2011
-PATCHLEVEL = 12
+VERSION = 2012
+PATCHLEVEL = 04
 SUBLEVEL =
-EXTRAVERSION =
+EXTRAVERSION = -rc1
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -174,6 +174,8 @@ include $(TOPDIR)/config.mk
 # that (or fail if absent).  Otherwise, search for a linker script in a
 # standard location.
 
+LDSCRIPT_MAKEFILE_DIR = $(dir $(LDSCRIPT))
+
 ifndef LDSCRIPT
 	#LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds.debug
 	ifdef CONFIG_SYS_LDSCRIPT
@@ -182,6 +184,7 @@ ifndef LDSCRIPT
 	endif
 endif
 
+# If there is no specified link script, we look in a number of places for it
 ifndef LDSCRIPT
 	ifeq ($(CONFIG_NAND_U_BOOT),y)
 		LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot-nand.lds
@@ -194,6 +197,11 @@ ifndef LDSCRIPT
 	endif
 	ifeq ($(wildcard $(LDSCRIPT)),)
 		LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot.lds
+	endif
+	ifeq ($(wildcard $(LDSCRIPT)),)
+		LDSCRIPT := $(TOPDIR)/arch/$(ARCH)/cpu/u-boot.lds
+		# We don't expect a Makefile here
+		LDSCRIPT_MAKEFILE_DIR =
 	endif
 	ifeq ($(wildcard $(LDSCRIPT)),)
 $(error could not find linker script)
@@ -336,6 +344,7 @@ export PLATFORM_LIBS
 # on the fly.
 LDPPFLAGS += \
 	-include $(TOPDIR)/include/u-boot/u-boot.lds.h \
+	-DCPUDIR=$(CPUDIR) \
 	$(shell $(LD) --version | \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
@@ -366,7 +375,6 @@ ALL-y += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map
 ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
 ALL-$(CONFIG_ONENAND_U_BOOT) += $(obj)u-boot-onenand.bin
 ONENAND_BIN ?= $(obj)onenand_ipl/onenand-ipl-2k.bin
-ALL-$(CONFIG_MMC_U_BOOT) += $(obj)mmc_spl/u-boot-mmc-spl.bin
 ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
 ALL-$(CONFIG_OF_SEPARATE) += $(obj)u-boot.dtb $(obj)u-boot-dtb.bin
 
@@ -502,11 +510,6 @@ onenand_ipl:	$(TIMESTAMP_FILE) $(VERSION_FILE) $(obj)include/autoconf.mk
 $(obj)u-boot-onenand.bin:	onenand_ipl $(obj)u-boot.bin
 		cat $(ONENAND_BIN) $(obj)u-boot.bin > $(obj)u-boot-onenand.bin
 
-mmc_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
-		$(MAKE) -C mmc_spl/board/$(BOARDDIR) all
-
-$(obj)mmc_spl/u-boot-mmc-spl.bin:	mmc_spl
-
 $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all
 
@@ -519,7 +522,7 @@ depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
 		$(obj)include/autoconf.mk \
 		$(obj)include/generated/generic-asm-offsets.h \
 		$(obj)include/generated/asm-offsets.h
-		for dir in $(SUBDIRS) $(CPUDIR) $(dir $(LDSCRIPT)) ; do \
+		for dir in $(SUBDIRS) $(CPUDIR) $(LDSCRIPT_MAKEFILE_DIR) ; do \
 			$(MAKE) -C $$dir _depend ; done
 
 TAG_SUBDIRS = $(SUBDIRS)
@@ -528,6 +531,11 @@ TAG_SUBDIRS += include
 
 FIND := find
 FINDFLAGS := -L
+
+checkstack:
+		$(CROSS_COMPILE)objdump -d $(obj)u-boot \
+			`$(FIND) $(obj) -name u-boot-spl -print` | \
+			perl $(src)tools/checkstack.pl $(ARCH)
 
 tags ctags:
 		ctags -w -o $(obj)ctags `$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) \
@@ -678,18 +686,6 @@ SX1_config:		unconfig
 	@$(MKCONFIG) -n $@ SX1 arm arm925t sx1
 
 #########################################################################
-## XScale Systems
-#########################################################################
-
-pdnb3_config \
-scpu_config:	unconfig
-	@mkdir -p $(obj)include
-	@if [ "$(findstring scpu_,$@)" ] ; then \
-		echo "#define CONFIG_SCPU"	>>$(obj)include/config.h ; \
-	fi
-	@$(MKCONFIG) -n $@ -a pdnb3 arm ixp pdnb3 prodrive
-
-#########################################################################
 ## ARM1176 Systems
 #########################################################################
 smdk6400_noUSB_config	\
@@ -742,14 +738,13 @@ clean:
 	@rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
 	@rm -f $(obj)nand_spl/{u-boot.lds,u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map,System.map}
 	@rm -f $(obj)onenand_ipl/onenand-{ipl,ipl.bin,ipl.map}
-	@rm -f $(obj)mmc_spl/{u-boot.lds,u-boot-spl,u-boot-spl.map,u-boot-spl.bin,u-boot-mmc-spl.bin}
 	@rm -f $(ONENAND_BIN)
 	@rm -f $(obj)onenand_ipl/u-boot.lds
 	@rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.lds,u-boot-spl.map}
 	@rm -f $(obj)MLO
 	@rm -f $(TIMESTAMP_FILE) $(VERSION_FILE)
 	@find $(OBJTREE) -type f \
-		\( -name 'core' -o -name '*.bak' -o -name '*~' \
+		\( -name 'core' -o -name '*.bak' -o -name '*~' -o -name '*.su' \
 		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \
 		| xargs rm -f
 
@@ -777,7 +772,6 @@ clobber:	tidy
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
 	@[ ! -d $(obj)onenand_ipl ] || find $(obj)onenand_ipl -name "*" -type l -print | xargs rm -f
-	@[ ! -d $(obj)mmc_spl ] || find $(obj)mmc_spl -name "*" -type l -print | xargs rm -f
 	@rm -f $(obj)dts/*.tmp
 
 mrproper \

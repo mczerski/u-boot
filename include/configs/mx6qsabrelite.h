@@ -28,11 +28,14 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
+#define CONFIG_MACH_TYPE	3769
+
 #include <asm/arch/imx-regs.h>
 
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
+#define CONFIG_REVISION_TAG
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN          (CONFIG_ENV_SIZE + 2 * 1024 * 1024)
@@ -44,6 +47,17 @@
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE           UART2_BASE
 
+#define CONFIG_CMD_SF
+#ifdef CONFIG_CMD_SF
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_SST
+#define CONFIG_MXC_SPI
+#define CONFIG_SF_DEFAULT_BUS  0
+#define CONFIG_SF_DEFAULT_CS   (0|(GPIO_NUMBER(3, 19)<<8))
+#define CONFIG_SF_DEFAULT_SPEED 25000000
+#define CONFIG_SF_DEFAULT_MODE (SPI_MODE_0)
+#endif
+
 /* MMC Configs */
 #define CONFIG_FSL_ESDHC
 #define CONFIG_FSL_USDHC
@@ -53,6 +67,7 @@
 #define CONFIG_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
+#define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 
@@ -66,6 +81,21 @@
 #define	CONFIG_FEC_XCV_TYPE		RGMII
 #define CONFIG_ETHPRIME			"FEC"
 #define CONFIG_FEC_MXC_PHYADDR		6
+#define CONFIG_PHYLIB
+#define CONFIG_PHY_MICREL
+
+/* USB Configs */
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_FAT
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_MX6
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+#define CONFIG_USB_ETHER_SMSC95XX
+#define CONFIG_MXC_USB_PORT	1
+#define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
+#define CONFIG_MXC_USB_FLAGS	0
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -163,10 +193,22 @@
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
 
-#define CONFIG_ENV_OFFSET              (6 * 64 * 1024)
-#define CONFIG_ENV_SIZE                        (8 * 1024)
+#define CONFIG_ENV_SIZE			(8 * 1024)
+
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV         0
+/* #define CONFIG_ENV_IS_IN_SPI_FLASH */
+
+#if defined(CONFIG_ENV_IS_IN_MMC)
+#define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
+#define CONFIG_SYS_MMC_ENV_DEV		0
+#elif defined(CONFIG_ENV_IS_IN_SPI_FLASH)
+#define CONFIG_ENV_OFFSET		(768 * 1024)
+#define CONFIG_ENV_SECT_SIZE		(8 * 1024)
+#define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
+#define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
+#define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
+#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
+#endif
 
 #define CONFIG_OF_LIBFDT
 

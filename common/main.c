@@ -267,28 +267,6 @@ int abortboot(int bootdelay)
 # endif	/* CONFIG_AUTOBOOT_KEYED */
 #endif	/* CONFIG_BOOTDELAY >= 0  */
 
-/*
- * Return 0 on success, or != 0 on error.
- */
-#ifndef CONFIG_CMD_PXE
-static inline
-#endif
-int run_command2(const char *cmd, int flag)
-{
-#ifndef CONFIG_SYS_HUSH_PARSER
-	/*
-	 * run_command can return 0 or 1 for success, so clean up its result.
-	 */
-	if (run_command(cmd, flag) == -1)
-		return 1;
-
-	return 0;
-#else
-	return parse_string_outer(cmd,
-			FLAG_PARSE_SEMICOLON | FLAG_EXIT_FROM_LOOP);
-#endif
-}
-
 /****************************************************************************/
 
 void main_loop (void)
@@ -355,7 +333,7 @@ void main_loop (void)
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
 # endif
 
-		run_command2(p, 0);
+		run_command(p, 0);
 
 # ifdef CONFIG_AUTOBOOT_KEYED
 		disable_ctrlc(prev);	/* restore Control C checking */
@@ -403,7 +381,7 @@ void main_loop (void)
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
 # endif
 
-		run_command2(s, 0);
+		run_command(s, 0);
 
 # ifdef CONFIG_AUTOBOOT_KEYED
 		disable_ctrlc(prev);	/* restore Control C checking */
@@ -414,7 +392,7 @@ void main_loop (void)
 	if (menukey == CONFIG_MENUKEY) {
 		s = getenv("menucmd");
 		if (s)
-			run_command2(s, 0);
+			run_command(s, 0);
 	}
 #endif /* CONFIG_MENUKEY */
 #endif /* CONFIG_BOOTDELAY */
@@ -460,7 +438,7 @@ void main_loop (void)
 		if (len == -1)
 			puts ("<INTERRUPT>\n");
 		else
-			rc = run_command (lastcommand, flag);
+			rc = run_command(lastcommand, flag);
 
 		if (rc <= 0) {
 			/* invalid command or not repeatable, forget it */
@@ -1154,6 +1132,7 @@ int parse_line (char *line, char *argv[])
 
 /****************************************************************************/
 
+#ifndef CONFIG_SYS_HUSH_PARSER
 static void process_macros (const char *input, char *output)
 {
 	char c, prev;
@@ -1280,10 +1259,8 @@ static void process_macros (const char *input, char *output)
  * the environment data, which may change magicly when the command we run
  * creates or modifies environment variables (like "bootp" does).
  */
-
-int run_command (const char *cmd, int flag)
+static int builtin_run_command(const char *cmd, int flag)
 {
-	cmd_tbl_t *cmdtp;
 	char cmdbuf[CONFIG_SYS_CBSIZE];	/* working copy of cmd		*/
 	char *token;			/* start of token in cmdbuf	*/
 	char *sep;			/* end of token (separator) in cmdbuf */
@@ -1361,42 +1338,7 @@ int run_command (const char *cmd, int flag)
 			continue;
 		}
 
-		/* Look up command in command table */
-		if ((cmdtp = find_cmd(argv[0])) == NULL) {
-			printf ("Unknown command '%s' - try 'help'\n", argv[0]);
-			rc = -1;	/* give up after bad command */
-			continue;
-		}
-
-		/* found - check max args */
-		if (argc > cmdtp->maxargs) {
-			cmd_usage(cmdtp);
-			rc = -1;
-			continue;
-		}
-
-#if defined(CONFIG_CMD_BOOTD)
-		/* avoid "bootd" recursion */
-		if (cmdtp->cmd == do_bootd) {
-#ifdef DEBUG_PARSER
-			printf ("[%s]\n", finaltoken);
-#endif
-			if (flag & CMD_FLAG_BOOTD) {
-				puts ("'bootd' recursion detected\n");
-				rc = -1;
-				continue;
-			} else {
-				flag |= CMD_FLAG_BOOTD;
-			}
-		}
-#endif
-
-		/* OK - call function to do the command */
-		if ((cmdtp->cmd) (cmdtp, flag, argc, argv) != 0) {
-			rc = -1;
-		}
-
-		repeatable &= cmdtp->repeatable;
+		rc = cmd_process(flag, argc, argv, &repeatable);
 
 		/* Did the user stop this? */
 		if (had_ctrlc ())
@@ -1404,6 +1346,31 @@ int run_command (const char *cmd, int flag)
 	}
 
 	return rc ? rc : repeatable;
+}
+#endif
+
+/*
+ * Run a command using the selected parser.
+ *
+ * @param cmd	Command to run
+ * @param flag	Execution flags (CMD_FLAG_...)
+ * @return 0 on success, or != 0 on error.
+ */
+int run_command(const char *cmd, int flag)
+{
+#ifndef CONFIG_SYS_HUSH_PARSER
+	/*
+	 * builtin_run_command can return 0 or 1 for success, so clean up
+	 * its result.
+	 */
+	if (builtin_run_command(cmd, flag) == -1)
+		return 1;
+
+	return 0;
+#else
+	return parse_string_outer(cmd,
+			FLAG_PARSE_SEMICOLON | FLAG_EXIT_FROM_LOOP);
+#endif
 }
 
 /****************************************************************************/
@@ -1414,7 +1381,7 @@ int do_run (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	int i;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	for (i=1; i<argc; ++i) {
 		char *arg;
@@ -1424,7 +1391,7 @@ int do_run (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			return 1;
 		}
 
-		if (run_command2(arg, flag) != 0)
+		if (run_command(arg, flag) != 0)
 			return 1;
 	}
 	return 0;
