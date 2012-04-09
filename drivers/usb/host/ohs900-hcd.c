@@ -63,7 +63,7 @@ static int ohs900_reset(void)
 	u8 connstate;
 
 	writeb(OHS900_HSCTLREG_RESET_CORE, &ohs900->hostslavectlreg);
-	wait_ms(20);
+	mdelay(20);
 	/* Disable SOF generation and interrupts */
 	writeb(0, &ohs900->irq_enable);
 	writeb(0, &ohs900->sofenreg);
@@ -101,7 +101,7 @@ void ohs900_bus_reset(void)
 	debug("Bus reset\n");
 	writeb(0, &ohs900->sofenreg);
 	writeb(OHS900_TXLCTL_MASK_SE0, &ohs900->txlinectlreg);
-	wait_ms(50);
+	mdelay(50);
 	if (readb(&ohs900->rxconnstatereg) == OHS900_LS_CONN_STATE)
 		writeb(OHS900_TXLCTL_MASK_LSPD, &ohs900->txlinectlreg);
 	else
