@@ -67,6 +67,38 @@
 #define CONFIG_SYS_OPENRISC_TMR_HZ	100
 
 /*
+ * SPI
+ */
+#define CONFIG_SPI
+#define CONFIG_OC_SIMPLE_SPI
+#define CONFIG_SYS_SIMPLE_SPI_LIST      \
+{					\
+	{				\
+		.freq = CONFIG_SYS_CLK_FREQ,	\
+		.base = 0xb0000000,		\
+	}				\
+}
+#define CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_STMICRO
+#define CONFIG_SF_DEFAULT_MODE      SPI_MODE_0
+#define CONFIG_SF_DEFAULT_SPEED     CONFIG_SYS_CLK_FREQ
+
+#define CONFIG_SF_DEFAULT_CS    0
+
+#define CONFIG_ENV_SPI_CS		0
+#define CONFIG_ENV_SPI_BUS      0
+#define CONFIG_ENV_SPI_MAX_HZ	CONFIG_SYS_CLK_FREQ
+#define CONFIG_ENV_SPI_MODE		SPI_MODE_0
+
+#define CONFIG_ENV_OFFSET       (0xf0000)
+#define CONFIG_ENV_SECT_SIZE    (1 * 64 * 1024)
+#define CONFIG_ENV_SIZE			(4 * 1024)
+
+#define CONFIG_ENV_IS_IN_SPI_FLASH
+
+
+/*
  * Memory organisation:
  *
  * RAM start ---------------------------
@@ -75,8 +107,6 @@
  *           | Stack                   |
  *           ---------------------------
  *           | Global data             |
- *           ---------------------------
- *           | Environment             |
  *           ---------------------------
  *           | Monitor                 |
  * RAM end   ---------------------------
@@ -88,14 +118,10 @@
 				CONFIG_SYS_SDRAM_SIZE - \
 				CONFIG_SYS_MONITOR_LEN)
 
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SIZE		0x20000 /* Total Size of Environment, 128KB */
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SIZE)
-
 /*
  * Global data object and stack pointer
  */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_ENV_ADDR \
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MONITOR_BASE \
 					- GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_GBL_DATA_ADDR	CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_GBL_DATA_OFFSET
@@ -132,6 +158,32 @@
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_BSP
+
+#define CONFIG_CMD_SF
+#define CONFIG_CMD_SPI
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_LZO
+
+
+/*
+ * MTD
+ */
+#define CONFIG_MTD_DEVICE               /* needed for mtdparts commands */
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_LZO
+#define CONFIG_BZIP2
+#define CONFIG_GZIP
+
+/*
+ * Default environment variables
+ */
+#define CONFIG_BOOTARGS		"uart,mmio,0x90000000,115200"
+#define CONFIG_BOOTCOMMAND	"sf probe; "	\
+	"sf read 0x6400000 0x100000 0x200000;"	\
+    "bootm 0x6400000;"
+#define CONFIG_CMDLINE_TAG
+#define CONFIG_CMDLINE_EDITING	1
+#define CONFIG_BOOTDELAY 1
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB
