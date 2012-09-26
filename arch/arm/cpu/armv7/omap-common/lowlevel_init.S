@@ -27,9 +27,9 @@
  */
 
 #include <asm/arch/omap.h>
+#include <linux/linkage.h>
 
-.global save_boot_params
-save_boot_params:
+ENTRY(save_boot_params)
 	/*
 	 * See if the rom code passed pointer is valid:
 	 * It is not valid if it is not in non-secure SRAM
@@ -76,31 +76,13 @@ save_boot_params:
 	strb	r2, [r3, #CH_FLAGS_OFFSET]
 1:
 	bx	lr
+ENDPROC(save_boot_params)
 
-
-.globl lowlevel_init
-lowlevel_init:
-	/*
-	 * Setup a temporary stack
-	 */
-	ldr	sp, =LOW_LEVEL_SRAM_STACK
-
-	/*
-	 * Save the old lr(passed in ip) and the current lr to stack
-	 */
-	push	{ip, lr}
-
-	/*
-	 * go setup pll, mux, memory
-	 */
-	bl	s_init
-	pop	{ip, pc}
-
-.globl set_pl310_ctrl_reg
-set_pl310_ctrl_reg:
+ENTRY(set_pl310_ctrl_reg)
 	PUSH	{r4-r11, lr}	@ save registers - ROM code may pollute
 				@ our registers
 	LDR	r12, =0x102	@ Set PL310 control register - value in R0
 	.word	0xe1600070	@ SMC #0 - hand assembled because -march=armv5
 				@ call ROM Code API to set control register
 	POP	{r4-r11, pc}
+ENDPROC(set_pl310_ctrl_reg)
