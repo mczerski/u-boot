@@ -27,6 +27,7 @@
 /*
  * BOARD/CPU
  */
+/*#define DEBUG*/
 
 #define CONFIG_SYS_CLK_FREQ		50000000
 #define CONFIG_SYS_RESET_ADDR		0x00000100
@@ -43,7 +44,6 @@
 #define CONFIG_BOARD_NAME		"de0_nano" /* custom board name */
 
 #define CONFIG_SYS_NO_FLASH
-#define CONFIG_SYS_MAX_FLASH_SECT	0
 
 /*
  * SERIAL
@@ -59,6 +59,21 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{CONFIG_BAUDRATE}
 #define CONFIG_SYS_CONSOLE_INFO_QUIET	/* Suppress console info */
 #define CONSOLE_ARG			"console=console=ttyS0,115200\0"
+
+/*
+ * Ethernet
+ */
+#define CONFIG_ETHOC
+#define CONFIG_SYS_ETHOC_BASE 		0x92000000
+#define CONFIG_SYS_RX_ETH_BUFFER	4
+
+#define CONFIG_ETHADDR			00:12:34:56:78:9a
+/*#define CONFIG_NETMASK  		255.255.255.0
+#define CONFIG_IPADDR   		192.168.1.2
+#define CONFIG_GATEWAYIP		192.168.1.254
+#define CONFIG_SERVERIP			192.168.1.1*/
+#define CONFIG_BOOTFILE			"linux"
+#define CONFIG_LOADADDR			0x1000000 /* 16MB mark */
 
 /*
  * TIMER
@@ -97,6 +112,13 @@
 
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 
+/*
+ * SPI FLASH
+ */
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_STMICRO
+#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
+#define CONFIG_SF_DEFAULT_SPEED		CONFIG_SYS_CLK_FREQ
 
 /*
  * Memory organisation:
@@ -113,7 +135,7 @@
  */
 /* We're running in RAM */
 #define CONFIG_MONITOR_IS_IN_RAM
-#define CONFIG_SYS_MONITOR_LEN	0x40000	/* Reserve 256k */
+#define CONFIG_SYS_MONITOR_LEN	0x80000	/* Reserve 512k */
 #define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_SDRAM_BASE + \
 				CONFIG_SYS_SDRAM_SIZE - \
 				CONFIG_SYS_MONITOR_LEN)
@@ -126,7 +148,7 @@
 #define CONFIG_SYS_GBL_DATA_ADDR	CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_GBL_DATA_OFFSET
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
-#define CONFIG_SYS_STACK_LENGTH		0x10000 /* 64KB */
+#define CONFIG_SYS_STACK_LENGTH		0x20000 /* 64KB */
 #define CONFIG_SYS_MALLOC_LEN		0x400000 /* 4MB */
 #define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_INIT_SP_OFFSET \
 					- CONFIG_SYS_STACK_LENGTH \
@@ -142,7 +164,7 @@
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
 					sizeof(CONFIG_SYS_PROMPT) + \
 					16)	/* Print buf size */
-#define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
 #define CONFIG_SYS_MEMTEST_START	(CONFIG_SYS_SDRAM_BASE + 0x2000)
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_INIT_SP_ADDR - 0x20000)
 #define CONFIG_CMDLINE_EDITING
@@ -152,38 +174,21 @@
  */
 #include <config_cmd_default.h>
 
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
-
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_BSP
-
+#define CONFIG_CMD_MII
+/*
+#define CONFIG_NET_MULTI
+*/
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_PING
 #define CONFIG_CMD_SF
-#define CONFIG_CMD_SPI
-#define CONFIG_CMD_MTDPARTS
-#define CONFIG_LZO
-
 
 /*
- * MTD
+ * Autobooting
  */
-#define CONFIG_MTD_DEVICE               /* needed for mtdparts commands */
-#define CONFIG_MTD_PARTITIONS
-#define CONFIG_LZO
-#define CONFIG_BZIP2
-#define CONFIG_GZIP
-
-/*
- * Default environment variables
- */
-#define CONFIG_BOOTARGS		"uart,mmio,0x90000000,115200"
-#define CONFIG_BOOTCOMMAND	"sf probe; "	\
-	"sf read 0x6400000 0x100000 0x200000;"	\
-    "bootm 0x6400000;"
-#define CONFIG_CMDLINE_TAG
-#define CONFIG_CMDLINE_EDITING	1
-#define CONFIG_BOOTDELAY 1
+#define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds */
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB

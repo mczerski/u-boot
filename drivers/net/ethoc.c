@@ -164,6 +164,27 @@
 #define	ETHOC_TIMEOUT		(HZ / 2)
 #define	ETHOC_MII_TIMEOUT	(1 + (HZ / 5))
 
+/* Standard interface flags (netdevice->flags). */
+#define	IFF_UP		0x1		/* interface is up		*/
+#define	IFF_BROADCAST	0x2		/* broadcast address valid	*/
+#define	IFF_DEBUG	0x4		/* turn on debugging		*/
+#define	IFF_LOOPBACK	0x8		/* is a loopback net		*/
+#define	IFF_POINTOPOINT	0x10		/* interface is has p-p link	*/
+#define	IFF_NOTRAILERS	0x20		/* avoid use of trailers	*/
+#define	IFF_RUNNING	0x40		/* interface RFC2863 OPER_UP	*/
+#define	IFF_NOARP	0x80		/* no ARP protocol		*/
+#define	IFF_PROMISC	0x100		/* receive all packets		*/
+#define	IFF_ALLMULTI	0x200		/* receive all multicast packets*/
+
+#define IFF_MASTER	0x400		/* master of a load balancer 	*/
+#define IFF_SLAVE	0x800		/* slave of a load balancer	*/
+
+#define IFF_MULTICAST	0x1000		/* Supports multicast		*/
+
+#define IFF_PORTSEL	0x2000          /* can set media type		*/
+#define IFF_AUTOMEDIA	0x4000		/* auto media select active	*/
+#define IFF_DYNAMIC	0x8000		/* dialup device with changing addresses*/
+
 /**
  * struct ethoc - driver-private device structure
  * @num_tx:	number of send buffers
@@ -200,6 +221,73 @@ static inline void ethoc_write(struct eth_device *dev, loff_t offset, u32 data)
 	writel(data, dev->iobase + offset);
 }
 
+static int ethoc_miiphy_wait(struct eth_device * dev)
+{
+	/* poll the BUSY bit */
+	while (ethoc_read(dev, MIISTATUS) & MIISTATUS_BUSY)
+		continue;
+	return 0;
+}
+
+static int ethoc_miiphy_read(const char *devname, uchar addr, uchar reg, ushort *val)
+{
+	loff_t offset;
+	u32 data;
+	struct eth_device * dev = eth_get_dev_by_name(devname);
+
+	if (!dev) return 1;
+
+	if (ethoc_miiphy_wait(dev))
+		return 1;
+
+	//phy and reg address
+	offset = MIIADDRESS;
+	data = MIIADDRESS_ADDR(addr, reg);
+	ethoc_write(dev, offset, data);
+
+	//cmd read
+	offset = MIICOMMAND;
+	data = MIICOMMAND_READ;
+	ethoc_write(dev, offset, data);
+
+	//wait for data
+	if (ethoc_miiphy_wait(dev))
+		return 1;
+
+	//read RX data
+	offset = MIIRX_DATA;
+	*val = ethoc_read(dev, offset);
+	return 0;
+}
+
+static int ethoc_miiphy_write(const char *devname, uchar addr, uchar reg, ushort val)
+{
+	loff_t offset;
+	u32 data;
+	struct eth_device * dev = eth_get_dev_by_name(devname);
+
+	if (!dev) return 1;
+
+	if (ethoc_miiphy_wait(dev))
+		return 1;
+
+	//phy and reg address
+	offset = MIIADDRESS;
+	data = MIIADDRESS_ADDR(addr, reg);
+	ethoc_write(dev, offset, data);
+
+	//TX data
+	offset = MIITX_DATA;
+	data = val;
+	ethoc_write(dev, offset, data);
+
+	//cmd write
+	offset = MIICOMMAND;
+	data = MIICOMMAND_WRITE;
+	ethoc_write(dev, offset, data);
+	return 0;
+}
+
 static inline void ethoc_read_bd(struct eth_device *dev, int index,
 				 struct ethoc_bd *bd)
 {
@@ -224,6 +312,32 @@ static int ethoc_set_mac_address(struct eth_device *dev)
 		    (mac[4] << 8) | (mac[5] << 0));
 	ethoc_write(dev, MAC_ADDR1, (mac[0] << 8) | (mac[1] << 0));
 	return 0;
+}
+
+static void ethoc_set_multicast_list(struct eth_device *dev, u16 flags)
+{
+	u32 mode = ethoc_read(dev, MODER);
+
+	/* set loopback mode if requested */
+	if (flags & IFF_LOOPBACK)
+		mode |=  MODER_LOOP;
+	else
+		mode &= ~MODER_LOOP;
+
+	/* receive broadcast frames if requested */
+	if (flags & IFF_BROADCAST)
+		mode &= ~MODER_BRO;
+	else
+		mode |=  MODER_BRO;
+
+	/* enable promiscuous mode if requested */
+	if (flags & IFF_PROMISC)
+		mode |=  MODER_PRO;
+	else
+		mode &= ~MODER_PRO;
+
+	ethoc_write(dev, MODER, mode);
+
 }
 
 static inline void ethoc_ack_irq(struct eth_device *dev, u32 mask)
@@ -282,6 +396,7 @@ static int ethoc_init_ring(struct eth_device *dev)
 static int ethoc_reset(struct eth_device *dev)
 {
 	u32 mode;
+	ushort mii_val;
 
 	/* TODO: reset controller? */
 
@@ -300,21 +415,39 @@ static int ethoc_reset(struct eth_device *dev)
 	ethoc_write(dev, MODER, mode);
 	ethoc_write(dev, IPGT, 0x15);
 
+	ethoc_set_multicast_list(dev, IFF_PROMISC);
+
 	ethoc_ack_irq(dev, INT_MASK_ALL);
 	ethoc_enable_rx_and_tx(dev);
+
+	/* set 100baseT */
+	ethoc_miiphy_read(dev->name, 0, 0, &mii_val);
+	//mii_val |= 0x3000;
+	//mii_val = 0xA100;
+	mii_val &= 0xCFBF;
+	ethoc_miiphy_write(dev->name, 0, 0, mii_val);
+
 	return 0;
 }
 
 static int ethoc_init(struct eth_device *dev, bd_t * bd)
 {
+	ushort mii_val;
 	struct ethoc *priv = (struct ethoc *)dev->priv;
-	printf("ethoc\n");
 
 	priv->num_tx = 1;
 	priv->num_rx = PKTBUFSRX;
 	ethoc_write(dev, TX_BD_NUM, priv->num_tx);
 	ethoc_init_ring(dev);
 	ethoc_reset(dev);
+
+	/* wait for link */
+	do {
+		ethoc_miiphy_read(dev->name, 0, 1, &mii_val);
+	}while(!(mii_val & 4));
+
+	printf(dev->name);
+	printf(": link is up\n");
 
 	return 0;
 }
@@ -508,5 +641,10 @@ int ethoc_initialize(u8 dev_num, int base_addr)
 	sprintf(dev->name, "%s-%hu", "ETHOC", dev_num);
 
 	eth_register(dev);
+
+#if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
+	miiphy_register(dev->name, ethoc_miiphy_read, ethoc_miiphy_write);
+#endif
+
 	return 1;
 }
