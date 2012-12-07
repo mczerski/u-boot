@@ -178,7 +178,7 @@ u32 ether_crc(size_t len, unsigned char const *p);
  *	Ethernet header
  */
 
-struct ethernet_hdr {
+struct __attribute__((__packed__)) ethernet_hdr {
 	uchar		et_dest[6];	/* Destination node		*/
 	uchar		et_src[6];	/* Source node			*/
 	ushort		et_protlen;	/* Protocol or length		*/
