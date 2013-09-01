@@ -91,9 +91,14 @@
 	{				\
 		.freq = CONFIG_SYS_CLK_FREQ,	\
 		.base = 0xb0000000,		\
+	},				\
+	{					\
+		.freq = CONFIG_SYS_CLK_FREQ,	\
+		.base = 0xb1000000,		\
 	}				\
 }
 #define CONFIG_OC_SIMPLE_SPI_BUILTIN_SS
+#define CONFIG_OC_SIMPLE_SPI_DUMMY_BYTE 0xFF
 #define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SF_DEFAULT_MODE      SPI_MODE_0
@@ -119,6 +124,19 @@
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 #define CONFIG_SF_DEFAULT_SPEED		CONFIG_SYS_CLK_FREQ
+
+/*
+ * MMC
+ */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_OCSDC
+#define CONFIG_OCSDC_BASE 		0x9e000000
+#define CONFIG_OCSDC_SDCLKFREQ	50000000
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_MMC
+#define CONFIG_CMD_FAT
+#define CONFIG_FAT_WRITE
 
 /*
  * Memory organisation:
@@ -188,7 +206,7 @@
 /*
  * Autobooting
  */
-#define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds */
+#define CONFIG_BOOTDELAY	2	/* autoboot after 2 seconds */
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB

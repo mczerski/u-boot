@@ -52,3 +52,16 @@ int board_eth_init(bd_t *bis)
 	return rc;
 }
 #endif
+
+#ifdef CONFIG_GENERIC_MMC
+int board_mmc_init(bd_t *bis)
+{
+	int rc = 0;
+
+#ifdef CONFIG_OCSDC
+	extern int ocsdc_mmc_init(u8 dev_num, int base_addr, int sdclk_freq);
+	rc += ocsdc_mmc_init(0, CONFIG_OCSDC_BASE, CONFIG_OCSDC_SDCLKFREQ);
+#endif
+	return rc;
+}
+#endif
