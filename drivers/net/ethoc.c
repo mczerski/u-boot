@@ -396,7 +396,6 @@ static int ethoc_init_ring(struct eth_device *dev)
 static int ethoc_reset(struct eth_device *dev)
 {
 	u32 mode;
-	ushort mii_val;
 
 	/* TODO: reset controller? */
 
@@ -419,13 +418,6 @@ static int ethoc_reset(struct eth_device *dev)
 
 	ethoc_ack_irq(dev, INT_MASK_ALL);
 	ethoc_enable_rx_and_tx(dev);
-
-	/* set 100baseT */
-	ethoc_miiphy_read(dev->name, 0, 0, &mii_val);
-	//mii_val |= 0x3000;
-	//mii_val = 0xA100;
-	mii_val &= 0xCFBF;
-	ethoc_miiphy_write(dev->name, 0, 0, mii_val);
 
 	return 0;
 }
