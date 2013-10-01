@@ -137,6 +137,7 @@
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_FAT
 #define CONFIG_FAT_WRITE
+#define CONFIG_CMD_EXT2
 
 /*
  * Memory organisation:

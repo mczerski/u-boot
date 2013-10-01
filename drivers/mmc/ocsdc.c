@@ -26,8 +26,9 @@
 #define OCSDC_RESPONSE_2         0x0c
 #define OCSDC_RESPONSE_3         0x10
 #define OCSDC_RESPONSE_4         0x14
+#define OCSDC_DATA_TIMEOUT       0x18
 #define OCSDC_CONTROL 			 0x1C
-#define OCSDC_TIMEOUT            0x20
+#define OCSDC_CMD_TIMEOUT        0x20
 #define OCSDC_CLOCK_DIVIDER      0x24
 #define OCSDC_SOFTWARE_RESET     0x28
 #define OCSDC_POWER_CONTROL      0x2C
@@ -58,10 +59,12 @@
 #define OCSDC_CMD_INT_STATUS_CCRC 0x0008
 #define OCSDC_CMD_INT_STATUS_CIE  0x0010
 
-// SDCMSC_DAT_INT_STATUS
-#define SDCMSC_DAT_INT_STATUS_TRS 0x01
-#define SDCMSC_DAT_INT_STATUS_CRC 0x02
-#define SDCMSC_DAT_INT_STATUS_OV  0x04
+// OCSDC_CMD_INT_STATUS bits
+#define OCSDC_DATA_INT_STATUS_CC     0x0001
+#define OCSDC_DATA_INT_STATUS_EI     0x0002
+#define OCSDC_DATA_INT_STATUS_CTE    0x0002
+#define OCSDC_DATA_INT_STATUS_CCRCE  0x0008
+#define OCSDC_DATA_INT_STATUS_CFE    0x0010
 
 struct ocsdc {
 	int iobase;
@@ -137,7 +140,8 @@ static void ocsdc_set_timeout(struct ocsdc * dev)
 		timeout_reg = 0xFFFF;
 
 	debug("ocsdc_set_timeout 0x%x\n", timeout_reg);
-	ocsdc_write(dev, OCSDC_TIMEOUT, timeout_reg);
+	ocsdc_write(dev, OCSDC_CMD_TIMEOUT, 0xFFFF);
+	ocsdc_write(dev, OCSDC_DATA_TIMEOUT, 0xFFFFFF);
 }
 
 /* Set clock prescalar value based on the required clock in HZ */
@@ -197,7 +201,7 @@ static int ocsdc_data_finish(struct ocsdc * dev) {
     while ((status = ocsdc_read(dev, OCSDC_DAT_INT_STATUS)) == 0);
     ocsdc_write(dev, OCSDC_DAT_INT_STATUS, 0);
 
-    if (status & SDCMSC_DAT_INT_STATUS_TRS) {
+    if (status & OCSDC_DATA_INT_STATUS_CC) {
     	debug("ocsdc_data_finish: ok\n");
     	return 0;
     }
@@ -220,10 +224,10 @@ static void ocsdc_setup_data_xfer(struct ocsdc * dev, struct mmc_cmd *cmd, struc
 			(unsigned long)data->src+data->blocksize*data->blocks);
 		ocsdc_write(dev, OCSDC_DST_SRC_ADDR, (u32)data->src);
 	}
-	ocsdc_write(dev, OCSDC_BLOCK_SIZE, data->blocksize);
+	ocsdc_write(dev, OCSDC_BLOCK_SIZE, data->blocksize-1);
 	ocsdc_write(dev, OCSDC_BLOCK_COUNT, data->blocks-1);
 
-	//debug("ocsdc_setup_read: addr: %x\n", (u32)data->dest);
+	debug("ocsdc_setup_read: addr: %x\n", (u32)data->dest);
 
 }
 
@@ -331,7 +335,7 @@ int ocsdc_mmc_init(u8 dev_num, int base_addr, int sdclk_freq)
 	mmc->voltages = ocsdc_get_voltage(priv);
 	mmc->host_caps = MMC_MODE_4BIT;
 
-	mmc->b_max = 0x10000;
+	mmc->b_max = 0xFFFF;
 
 	mmc_register(mmc);
 
